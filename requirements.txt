@@ -1,0 +1,4 @@
+# yacs>=0.1.8
+# pyyaml>=5.4.1
+fire
+protobuf
