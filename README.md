@@ -1,7 +1,9 @@
 # dataperf-speech-example
 Example workflow for our data-centric speech benchmark
 
-Edit `selection/main.py` [**TODO:** this will be replaced by a custom class] to include your custom training set selection algorithm. Make sure not to change the behavior of `selection/main.py` (either the arguments used as input or output).
+Edit the function `select()` in `selection/selection.py` to include your custom training set selection algorithm. 
+
+Make sure not to change the behavior of `selection/main.py` (either the arguments used as input or output).
 
 If your code has additional dependencies, make sure to edit `requirements.txt` or the `Dockerfile` to include these.
 

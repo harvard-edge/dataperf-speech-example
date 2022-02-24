@@ -1,5 +1,6 @@
 import fire
 import numpy as np
+from selection.selection import TrainingSetSelection
 from selection.serialization import deserialize
 
 
@@ -10,22 +11,14 @@ def main(train_file):
     nontarget_vectors = train_data["nontarget_mswc_vectors"]
     nontarget_ids = train_data["nontarget_ids"]
 
-    # inspect some of the training data
-    print(target_vectors.shape)
-    print(nontarget_vectors.shape)
-    print(len(target_ids), target_ids[0])
-    print(len(nontarget_ids), nontarget_ids[0])
+    selection = TrainingSetSelection(
+        target_vectors=target_vectors,
+        target_ids=target_ids,
+        nontarget_vectors=nontarget_vectors,
+        nontarget_ids=nontarget_ids,
+    )
 
-    rng = np.random.RandomState(0)
-
-    sel_target_idxs = rng.choice(len(target_ids), 10, replace=False)
-    sel_nontarget_idxs = rng.choice(len(nontarget_ids), 10, replace=False)
-   
-    # conform to expected inputs for a logistic regression classifier
-    # https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
-
-    train_x = np.vstack([target_vectors[sel_target_idxs], nontarget_vectors[sel_nontarget_idxs]])
-    train_y = np.concatenate([np.ones(len(sel_target_idxs)), np.zeros(len(sel_nontarget_idxs))])
+    train_x, train_y = selection.select()
 
     np.save("train_x.npy", train_x)
     np.save("train_y.npy", train_y)
