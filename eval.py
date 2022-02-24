@@ -5,7 +5,7 @@ import numpy as np
 from selection.serialization import deserialize
 
 
-def main(eval_file):
+def main(eval_file, train_file="train.npz"):
     eval_data = deserialize.deserialize_from_pb(eval_file)
     eval_target = eval_data["target_mswc_vectors"]
     eval_nontarget = eval_data["nontarget_mswc_vectors"]
@@ -15,8 +15,9 @@ def main(eval_file):
     )
 
     # TODO(mmaz) ensure these are a proper subset
-    train_x = np.load("train_x.npy")
-    train_y = np.load("train_y.npy")
+    train = np.load(train_file)
+    train_x = train["train_x"]
+    train_y = train["train_y"]
 
     clf = sklearn.linear_model.LogisticRegression(random_state=0).fit(train_x, train_y)
     print("test score", clf.score(eval_x, eval_y))

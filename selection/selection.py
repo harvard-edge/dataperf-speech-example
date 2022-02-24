@@ -8,7 +8,7 @@ class TrainingSetSelection:
     ) -> None:
         self.target_vectors = target_vectors
         self.target_ids = target_ids
-        self.nontarget_ectors = nontarget_vectors
+        self.nontarget_mswc_vectors = nontarget_vectors
         self.nontarget_ids = nontarget_ids
 
     def select(self):
@@ -23,7 +23,7 @@ class TrainingSetSelection:
         
         # inspect some of the training data
         print(self.target_vectors.shape)
-        print(self.nontarget_vectors.shape)
+        print(self.nontarget_mswc_vectors.shape)
         print(len(self.target_ids), self.target_ids[0])
         print(len(self.nontarget_ids), self.nontarget_ids[0])
 
@@ -36,7 +36,7 @@ class TrainingSetSelection:
         train_x = np.vstack(
             [
                 self.target_vectors[sel_target_idxs],
-                self.nontarget_vectors[sel_nontarget_idxs],
+                self.nontarget_mswc_vectors[sel_nontarget_idxs],
             ]
         )
         train_y = np.concatenate(
