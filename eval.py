@@ -20,7 +20,7 @@ def main(eval_file, train_file="train.npz"):
     train_y = train["train_y"]
 
     clf = sklearn.linear_model.LogisticRegression(random_state=0).fit(train_x, train_y)
-    print("test score", clf.score(eval_x, eval_y))
+    print("eval score", clf.score(eval_x, eval_y))
 
 
 if __name__ == "__main__":
