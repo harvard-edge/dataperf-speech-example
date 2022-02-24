@@ -64,3 +64,7 @@ Finally, test out the evaluation script on your selection algorithm's output (we
 ```
 python eval.py --eval_file=path/to/eval.pb --train_file=workdir/train.npz
 ```
+
+### Submitting to the evaluation server
+
+**[TODO]**
