@@ -1,33 +1,39 @@
 from pathlib import Path
 import fire
-import numpy as np
+import yaml
 from selection.selection import TrainingSetSelection
 from selection.serialization import deserialize
 
 
 def main(input_samples, outdir="/workdir"):
-    train_data = deserialize.deserialize_from_pb(input_samples)
-    target_vectors = train_data["target_mswc_vectors"]
-    target_ids = train_data["target_ids"]
-    nontarget_mswc_vectors = train_data["nontarget_mswc_vectors"]
-    nontarget_ids = train_data["nontarget_ids"]
+    sample_data = deserialize.deserialize_from_pb(input_samples)
+    target_mswc_vectors = sample_data["target_mswc_vectors"]
+    target_ids = sample_data["target_ids"]
+    nontarget_mswc_vectors = sample_data["nontarget_mswc_vectors"]
+    nontarget_ids = sample_data["nontarget_ids"]
 
     selection = TrainingSetSelection(
-        target_vectors=target_vectors,
+        target_vectors=target_mswc_vectors,
         target_ids=target_ids,
         nontarget_vectors=nontarget_mswc_vectors,
         nontarget_ids=nontarget_ids,
     )
 
-    train_x, train_y = selection.select()
+    train = selection.select()
 
     assert Path(
         outdir
     ).is_dir(), (
         f"{outdir} does not exist, please specify --outdir as a command line argument"
     )
-    output = Path(outdir) / "train.npz"
-    np.savez_compressed(output, train_x=train_x, train_y=train_y)
+    output = Path(outdir) / "train.yaml"
+    with open(output, "w") as fh:
+        yaml.dump(
+            dict(target_ids=train.target_ids, nontarget_ids=train.nontarget_ids),
+            fh,
+            default_flow_style=None,
+            sort_keys=False,
+        )
 
 
 if __name__ == "__main__":

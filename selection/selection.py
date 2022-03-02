@@ -1,11 +1,32 @@
+from typing import List
 import numpy as np
+import dataclasses
+
+
+@dataclasses.dataclass
+class TrainingSet:
+    target_ids: List[str]
+    nontarget_ids: List[str]
+
+
 # include additional dependencies as needed
 
 
 class TrainingSetSelection:
     def __init__(
-        self, target_vectors, target_ids, nontarget_vectors, nontarget_ids
+        self,
+        target_vectors: np.ndarray,
+        target_ids: List[str],
+        nontarget_vectors: np.ndarray,
+        nontarget_ids: List[str],
     ) -> None:
+        """
+        Arguments:
+            target_vectors:
+            target_ids:
+            nontarget_vectors:
+            nontarget_ids:
+        """
         self.target_vectors = target_vectors
         self.target_ids = target_ids
         self.nontarget_mswc_vectors = nontarget_vectors
@@ -16,11 +37,9 @@ class TrainingSetSelection:
         Replace this with your custom training set selection algorithm
 
         Returns: 
-            train_x, train_y
-                conform to expected inputs for a logistic regression classifier
-                https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
+            TrainingSet
         """
-        
+
         # inspect some of the training data
         print(self.target_vectors.shape)
         print(self.nontarget_mswc_vectors.shape)
@@ -32,15 +51,9 @@ class TrainingSetSelection:
         sel_target_idxs = rng.choice(len(self.target_ids), 10, replace=False)
         sel_nontarget_idxs = rng.choice(len(self.nontarget_ids), 10, replace=False)
 
-
-        train_x = np.vstack(
-            [
-                self.target_vectors[sel_target_idxs],
-                self.nontarget_mswc_vectors[sel_nontarget_idxs],
-            ]
-        )
-        train_y = np.concatenate(
-            [np.ones(len(sel_target_idxs)), np.zeros(len(sel_nontarget_idxs))]
+        training_set = TrainingSet(
+            target_ids=[self.target_ids[ix] for ix in sel_target_idxs],
+            nontarget_ids=[self.nontarget_ids[ix] for ix in sel_nontarget_idxs],
         )
 
-        return train_x, train_y
+        return training_set
