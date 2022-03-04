@@ -10,7 +10,7 @@ virtualenv -p python3 ./env && source ./env/bin/activate && pip install mlcube-d
 
 # Fetch the implementation from GitHub
 git clone https://github.com/harvard-edge/dataperf-speech-example && cd ./dataperf-speech-example
-git fetch origin pull/xx/head:feature/MLCube-integration && git checkout feature/MLCube-integration
+git fetch origin pull/1/head:feature/MLCube-integration && git checkout feature/MLCube-integration
 ```
 
 ## Tasks execution
