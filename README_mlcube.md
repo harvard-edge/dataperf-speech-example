@@ -13,6 +13,9 @@ git clone https://github.com/harvard-edge/dataperf-speech-example && cd ./datape
 git fetch origin pull/1/head:feature/MLCube-integration && git checkout feature/MLCube-integration
 ```
 
+## Project structure
+
+![Diagram](https://i.imgur.com/FzHIcYk.png)
 ## Tasks execution
 
 ```bash
