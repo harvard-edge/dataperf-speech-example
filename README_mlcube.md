@@ -16,6 +16,7 @@ git fetch origin pull/1/head:feature/MLCube-integration && git checkout feature/
 ## Project structure
 
 ![Diagram](https://i.imgur.com/FzHIcYk.png)
+
 ## Tasks execution
 
 ```bash
@@ -27,4 +28,11 @@ mlcube run --task=select -Pdocker.build_strategy=always
 
 # Run evaluate task
 mlcube run --task=evaluate -Pdocker.build_strategy=always
+```
+
+## Execute complete pipeline
+
+```bash
+# Run all steps
+mlcube run --task=download,select,evaluate -Pdocker.build_strategy=alwaysç
 ```
