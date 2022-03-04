@@ -25,7 +25,7 @@ tasks:
     # Run selection algorithm
     parameters:
       inputs: { data_path: data/}
-      outputs: { output_path: selection_output/ }
+      outputs: { output_path: select_output/ }
 
   evaluate:
     # Perfom evaluation
@@ -33,6 +33,6 @@ tasks:
       inputs:
         {
           eval_path: data/,
-          train_path: selection_output/
+          train_path: select_output/
         }
       outputs: { log_path: { type: file, default: log.txt } }
