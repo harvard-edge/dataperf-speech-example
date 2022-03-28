@@ -1,36 +1,30 @@
-from typing import List
-import numpy as np
+from typing import Dict, List
 import dataclasses
 
 
+
 @dataclasses.dataclass
+#dict {"targets": {"dog":[list of IDs], ...}, "nontargets": [list of IDs]}
 class TrainingSet:
-    target_ids: List[str]
-    nontarget_ids: List[str]
+    targets: Dict[str, List[str]]
+    nontargets: List[str]
 
 
 # include additional dependencies as needed
+from random import sample
 
 
-class TrainingSetSelection:
+class TrainingSetSelection: #TODO REDEFINE THIS INTERFACE TO MATCH NEW SPEC
     def __init__(
         self,
-        target_vectors: np.ndarray,
-        target_ids: List[str],
-        nontarget_vectors: np.ndarray,
-        nontarget_ids: List[str],
+        train_embeddings,# {"targets": {"dog":[{'ID':string,'feature_vector':np.array,'audio':np.array}, ...], ...}, "nontargets": [{'ID':string,'feature_vector':np.array,'audio':np.array}, ...]}
+        train_set_size,
+        audio_flag=False
     ) -> None:
-        """
-        Arguments:
-            target_vectors:
-            target_ids:
-            nontarget_vectors:
-            nontarget_ids:
-        """
-        self.target_vectors = target_vectors
-        self.target_ids = target_ids
-        self.nontarget_mswc_vectors = nontarget_vectors
-        self.nontarget_ids = nontarget_ids
+
+        self.target_vectors = train_embeddings
+        self.train_set_size = train_set_size
+        self.audio_flag = audio_flag
 
     def select(self):
         """"
@@ -40,20 +34,20 @@ class TrainingSetSelection:
             TrainingSet
         """
 
-        # inspect some of the training data
-        print(self.target_vectors.shape)
-        print(self.nontarget_mswc_vectors.shape)
-        print(len(self.target_ids), self.target_ids[0])
-        print(len(self.nontarget_ids), self.nontarget_ids[0])
+        per_class_size = self.train_set_size // 6 #5 targets + nontarget
 
-        rng = np.random.RandomState(0)
+        selected_targets = {}
+        for target, sample_list in self.target_vectors['targets'].items():
+            selected_samples = sample(sample_list, per_class_size)
+            selected_targets[target] = [sample['ID'] for sample in selected_samples]
 
-        sel_target_idxs = rng.choice(len(self.target_ids), 10, replace=False)
-        sel_nontarget_idxs = rng.choice(len(self.nontarget_ids), 10, replace=False)
+        selected_nontarget_samples = sample(self.target_vectors['non_targets'], per_class_size)
+        selected_nontargets = [sample['ID'] for sample in selected_nontarget_samples]
+
 
         training_set = TrainingSet(
-            target_ids=[self.target_ids[ix] for ix in sel_target_idxs],
-            nontarget_ids=[self.nontarget_ids[ix] for ix in sel_nontarget_idxs],
+            targets= selected_targets,
+            nontargets= selected_nontargets,
         )
 
         return training_set
