@@ -2,7 +2,6 @@ from typing import Dict, List
 import dataclasses
 
 
-
 @dataclasses.dataclass
 #dict {"targets": {"dog":[list of IDs], ...}, "nontargets": [list of IDs]}
 class TrainingSet:
@@ -14,7 +13,7 @@ class TrainingSet:
 from random import sample
 
 
-class TrainingSetSelection: #TODO REDEFINE THIS INTERFACE TO MATCH NEW SPEC
+class TrainingSetSelection:
     def __init__(
         self,
         train_embeddings,# {"targets": {"dog":[{'ID':string,'feature_vector':np.array,'audio':np.array}, ...], ...}, "nontargets": [{'ID':string,'feature_vector':np.array,'audio':np.array}, ...]}

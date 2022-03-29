@@ -1,9 +1,10 @@
 FROM tensorflow/tensorflow:2.7.1
 
-COPY requirements.txt /app/requirements.txt
-RUN pip install -r /app/requirements.txt
+COPY requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r ./requirements.txt
 
-COPY . /app/
-WORKDIR /app/
+COPY selection/ ./selection
+COPY dataperf_speech_config.yaml ./dataperf_speech_config.yaml
+COPY allowed_training_set.yaml ./allowed_training_set.yaml
 
 ENTRYPOINT ["python", "-m", "selection.main"]
