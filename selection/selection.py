@@ -16,12 +16,14 @@ from random import sample
 class TrainingSetSelection:
     def __init__(
         self,
-        train_embeddings,# {"targets": {"dog":[{'ID':string,'feature_vector':np.array,'audio':np.array}, ...], ...}, "nontargets": [{'ID':string,'feature_vector':np.array,'audio':np.array}, ...]}
+        train_embeddings,
         train_set_size,
         audio_flag=False
     ) -> None:
 
         self.target_vectors = train_embeddings
+        # {"targets": {"dog":[{'ID':string,'feature_vector':np.array,'audio':np.array}, ...], ...},
+        #  "nontargets": [{'ID':string,'feature_vector':np.array,'audio':np.array}, ...]}
         self.train_set_size = train_set_size
         self.audio_flag = audio_flag
 
@@ -32,6 +34,9 @@ class TrainingSetSelection:
         Returns: 
             TrainingSet
         """
+
+        if self.audio_flag:
+            print(self.target_vectors['non_targets'][0]['audio'])
 
         per_class_size = self.train_set_size // 6 #5 targets + nontarget
 

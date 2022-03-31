@@ -1,30 +1,32 @@
-# dataperf-speech-example
-Example workflow for our data-centric speech benchmark
+# Dataperf-Selection-Speech Alpha
+Dataperf-Selection-Speech is a benchmark that measures the performance of dataset selection algorithms. The model training component is frozen and participants can only improve the accuracy by selecting the best trainging set. The benchmark is intended to encompass the tasks of dataset cleaning and coreset selection for a keyword spotting application.
 
-### Terminology  TODO UPDATE
-
-* Keyword spotting model (KWS model): Also referred to as a wakeword or hotword model, or a voice trigger detection model, this is a small ML speech model that is designed to recognize a small vocabulary of spoken words or phrases (e.g., Siri, Google Voice Assistant, Alexa)
-* Target sample: An example 1-second audio clip of a keyword used to train or evaluate a keyword-spotting model
-* Nontarget sample: 1-second audio clips of words which are outside of the KWS model's vocabulary, used to train or measure the model's ability to minimize false positive detections on non-keywords.
-* MSWC dataset: the [Multilingual Spoken Words Corpus](https://mlcommons.org/words), a dataset of 340,000 spoken words in 50 languages.
-* Embedding vector representation: An n-dimensional vector which provides a feature representation of an audio word. We have trained a large classifier on keywords in MSWC, and we provide a 1024-element feature vector by using the penultimate layer of the classifer. Other embeddings, such as [wav2vec2](https://huggingface.co/docs/transformers/model_doc/wav2vec2) are also available **[TODO: we may provide a flag for users to select which embedding they wish to use for training and evaluation, or we may restrict to only one embedding - TBD]**
+The basic workflow:
+![Simple workflow](https://docs.google.com/drawings/d/e/2PACX-1vSlVN0uRWKySxu2ghuRhori-YxnQG859kg7zxan9xKXwarb1lQkRw9qVlnsOGEDqeVImxIplBvPDe5O/pub?w=635&h=416)
 
 ### Files
-* `train_vectors` : 
-* `eval_vectors` : 
-* `allowed_train_set.yaml` : 
-* `eval.yaml` : 
-* `train.yaml` : 
-* `dataperf_speech_config.yaml` : 
+
+* `train_vectors` : The directory that contains the embedding vectors that can be selected for training. The file structure follows the pattern `train_vectors/en/left.parquet`. Each parquet file contains a "clip_id" column and a "mswc_embedding_vector" column.
+
+* `eval_vectors` : The directory that contains the embedding vectors that are used for evaluation. The structure is identical to `train_vectors`
+
+* `allowed_train_set.yaml` : A file that specifies which sample IDs are valid training samples. The file contrains the following structure `{"targets": {"left":[list]}, "nontargets": [list]}`
+
+* `eval.yaml` : The evaluation set for eval.py. It follows the same structure as `allowed_train_set.yaml`.
+* `train.yaml` : The file produced by `selection:main` that specifies the training set for eval.py.  It follows the same structure as `allowed_train_set.yaml`
+
+* `dataperf_speech_config.yaml` : This file contains the configuration for the dataperf-speech-example workflow.
 
 #### Optional Files
-* `MSWC_vectors` : 
-* `MSWC_audio` : 
+
+* `mswc_vectors` : The unified directory of all embedding vectors. This directory can be used to generate new `train_vectors` and `eval_vectors` directories.
+
+* `train_audio` : The directory of wav files that can optionally be used in the selection algorithm.
 
 On the evaluation server, we will have distinct, hidden versions of files using different keywords in different languages, in order to calculate the official score for our leaderboard. This ensures the submitted selection algoithm can generalize to other words and languages. We encurage participants to test out other target words to ensure their solution generalizes. **[TODO: provide link to scoring function]**
 
 #### File Diagram
-![File Diagram](https://docs.google.com/drawings/d/1h5uIaUZVWzO_bGhtsdwr7tA4J6xC5Anh2GFN2BBr2yA/edit?usp=sharing)
+![File Diagram](https://docs.google.com/drawings/d/e/2PACX-1vS2OAQYU6T4E2FB0lvkW3kf4nGLfbVNAjQm0wXA0XwSy6g9hDOH8BivPg9GW4NdSIDvFRhhg-LtyE2H/pub?w=960&h=720)
 
 ### Developing a custom training set selection algorithm
 
@@ -79,8 +81,22 @@ python eval.py --eval_file=eval.yaml --train_file=workdir/train.yaml
 ```
 
 #### Using .wav Files for Selection
-**[TODO]**
+
+To use the raw audio in selection.py in addition to the embedding vectors:
+
+* Download [the .wav version of the MSWC dataset](TODO).
+* Pass the MSWC audio directory to selection:main as the `audio_dir` argument.
+* Access the raw audio of a sample in selection.py with the `['audio']` label
 
 ### Submitting to the evaluation server
+**Not part of the Alpha**
 
-**[TODO]**
+
+### Glossary
+
+* Keyword spotting model (KWS model): Also referred to as a wakeword or hotword model, or a voice trigger detection model, this is a small ML speech model that is designed to recognize a small vocabulary of spoken words or phrases (e.g., Siri, Google Voice Assistant, Alexa)
+* Target sample: An example 1-second audio clip of a keyword used to train or evaluate a keyword-spotting model
+* Nontarget sample: 1-second audio clips of words which are outside of the KWS model's vocabulary, used to train or measure the model's ability to minimize false positive detections on non-keywords.
+* MSWC dataset: the [Multilingual Spoken Words Corpus](https://mlcommons.org/words), a dataset of 340,000 spoken words in 50 languages.
+* Embedding vector representation: An n-dimensional vector which provides a feature representation of an audio word. We have trained a large classifier on keywords in MSWC, and we provide a 1024-element feature vector by using the penultimate layer of the classifer. 
+<!-- Other embeddings, such as [wav2vec2](https://huggingface.co/docs/transformers/model_doc/wav2vec2) are also available **[TODO: we may provide a flag for users to select which embedding they wish to use for training and evaluation, or we may restrict to only one embedding - TBD]** -->

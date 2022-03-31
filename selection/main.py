@@ -18,7 +18,6 @@ def main(
     with open(config_file, "r") as fh:
         config = yaml.safe_load(fh)
     train_set_size_limit = config["train_set_size_limit"]
-    #TODO add more config parameters
 
     embedding_dataset = Path(train_embeddings_dir)
 
@@ -42,8 +41,17 @@ def main(
     
     audio_flag = False
     if audio_dir is not None:
+        #TODO Test with wav files
+        from scipy.io import wavfile
         audio_flag = True
-        #TODO add audio to train_embeddings
+        for target, sample_list in train_embeddings['targets'].items():
+            for sample in sample_list:
+                _, audio = wavfile.read(audio_dir + '/' + sample['ID'])
+                sample['audio'] = audio
+        for sample in train_embeddings['non_targets']:
+            _, audio = wavfile.read(audio_dir + '/' + sample['ID'])
+            sample['audio'] = audio
+
 
 
     selection = TrainingSetSelection(
