@@ -1,9 +1,14 @@
-FROM tensorflow/tensorflow:2.7.1
+FROM python:3.9-slim
+
+RUN apt update -y
+RUN apt install default-jdk -y
 
 COPY requirements.txt /app/requirements.txt
 RUN pip install -r /app/requirements.txt
 
-COPY . /app/
+COPY *.py /app/
+COPY *.yaml /app/
+
 WORKDIR /app/
 
-ENTRYPOINT ["python", "-m", "selection.main"]
+ENTRYPOINT ["python3", "main.py"]
