@@ -90,7 +90,7 @@ To use the raw audio in selection.py in addition to the embedding vectors:
 * Access the raw audio of a sample in selection.py with the `['audio']` label
 
 ### Submitting to the evaluation server
-**Not part of the Alpha**
+**Submission instructions will be shared directly with participants during the Alpha**
 
 
 ### Glossary
