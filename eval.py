@@ -12,8 +12,9 @@ label_idx = 0 #IDs look like "en/clips/and/common_voice..." this is the index of
 def create_train_sets(selected_data, allowed_training_embeddings, training_classes, train_dataset):
     train_x = [] #embeddings
     train_y = [] #numerical index of training_classes 
+    allowed_nontargets = set(allowed_training_embeddings['nontargets'])
     for selected_id in selected_data["nontargets"]:
-        if not selected_id in allowed_training_embeddings['nontargets']:
+        if not selected_id in allowed_nontargets:
             print("invaid embedding ID: ", selected_id)
             raise ValueError('Selected Embedding ID not present in allowed training data')
 
