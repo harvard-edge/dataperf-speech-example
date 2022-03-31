@@ -6,14 +6,15 @@ from pathlib import Path
 import pandas as pd
 
 #Constants
-label_idx = 0 #IDs look like "en/clips/and/common_voice..." this is the index of the label
+label_idx = 0 #IDs look like "and/common_voice..." this is the index of the label
 
 
 def create_train_sets(selected_data, allowed_training_embeddings, training_classes, train_dataset):
     train_x = [] #embeddings
     train_y = [] #numerical index of training_classes 
+    allowed_nontargets = set(allowed_training_embeddings['nontargets'])
     for selected_id in selected_data["nontargets"]:
-        if not selected_id in allowed_training_embeddings['nontargets']:
+        if not selected_id in allowed_nontargets:
             print("invaid embedding ID: ", selected_id)
             raise ValueError('Selected Embedding ID not present in allowed training data')
 
@@ -24,13 +25,14 @@ def create_train_sets(selected_data, allowed_training_embeddings, training_class
         parquet_file = pd.read_parquet(train_dataset / (label + ".parquet"))
         idx = parquet_file["clip_id"].tolist().index(selected_id)
         train_x.append(parquet_file["mswc_embedding_vector"][idx])
-        train_y.append(training_classes.index("nontarget"))
+        train_y.append(training_classes.index("nontargets"))
 
     for label in selected_data["targets"].keys():
         if not label in training_classes:
             raise ValueError('Provided label doesnt match classes in eval set')
+        allowed_targets = set(allowed_training_embeddings['targets'][label])
         for selected_id in selected_data["targets"][label]:
-            if not selected_id in allowed_training_embeddings['targets'][label]:
+            if not selected_id in allowed_targets:
                 print("invaid embedding ID: ", selected_id)
                 raise ValueError('Selected Embedding ID not present in allowed training data')
             if not label == Path(selected_id).parts[label_idx]:
@@ -51,7 +53,7 @@ def create_eval_sets(eval_data, eval_dataset, training_classes):
         parquet_file = pd.read_parquet(eval_dataset / (label + ".parquet"))
         idx = parquet_file["clip_id"].tolist().index(id)
         eval_x.append(parquet_file["mswc_embedding_vector"][idx])
-        eval_y.append(training_classes.index("nontarget"))
+        eval_y.append(training_classes.index("nontargets"))
     for label in eval_data["targets"].keys():
         parquet_file = pd.read_parquet(eval_dataset / (label + ".parquet"))
         for id in eval_data["targets"][label]:
@@ -71,12 +73,13 @@ def main(
     with open(config_file, "r") as fh:
         config = yaml.safe_load(fh)
     train_set_size_limit = config["train_set_size_limit"]
-    #TODO add more config parameters
+    random_seed = config["random_seed"]
     
     with open(allowed_training_set, "r") as fh:
         allowed_training_embeddings = yaml.safe_load(fh) #dict {"targets": {"dog":[list]}, "nontargets": [list]}
     training_classes = list(allowed_training_embeddings["targets"].keys())#specifies the label indicies for training 
-    training_classes.append("nontarget")
+    assert "nontarget" not in training_classes, "nontarget is a reserved label"
+    training_classes = ["nontargets"] + training_classes #adds the nontargets class to the list
 
     train_dataset = Path(train_embeddings_dir)
     eval_dataset = Path(eval_embeddings_dir)
@@ -91,10 +94,8 @@ def main(
         print("Training set size limit: ", train_set_size_limit)
         raise ValueError('Selected training set is too large')
 
-
-    seed = 0
-    Percept = sklearn.linear_model.Perceptron(random_state=seed).fit(train_x, train_y)
-    svm = sklearn.svm.SVC(random_state=seed, decision_function_shape='ovr').fit(train_x, train_y)
+    Percept = sklearn.linear_model.Perceptron(random_state=random_seed).fit(train_x, train_y)
+    svm = sklearn.svm.SVC(random_state=random_seed, decision_function_shape='ovr').fit(train_x, train_y)
 
 
     #eval

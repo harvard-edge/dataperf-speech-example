@@ -2,6 +2,7 @@
 Dataperf-Selection-Speech is a benchmark that measures the performance of dataset selection algorithms. The model training component is frozen and participants can only improve the accuracy by selecting the best trainging set. The benchmark is intended to encompass the tasks of dataset cleaning and coreset selection for a keyword spotting application.
 
 The basic workflow:
+
 ![Simple workflow](https://docs.google.com/drawings/d/e/2PACX-1vSlVN0uRWKySxu2ghuRhori-YxnQG859kg7zxan9xKXwarb1lQkRw9qVlnsOGEDqeVImxIplBvPDe5O/pub?w=635&h=416)
 
 ### Files
@@ -65,7 +66,7 @@ mkdir workdir
 Then run your selection algorithm within the docker container:
 
 ```
-docker run --rm  -u $(id -u):$(id -g) --network none -v $(pwd)/workdir:/workdir -v $(pwd)/embeddings:/embeddings -it dataperf-speech-submission:latest
+docker run --rm  -u $(id -u):$(id -g) --network none -v $(pwd)/config_files:/config_files -v $(pwd)/workdir:/workdir -v $(path to embeddings):/embeddings -it dataperf-speech-submission:latest
 ```
 
 There are several flags to note:

@@ -11,8 +11,8 @@ label_idx = 0 #IDs look like "en/clips/and/common_voice..." this is the index of
 def main(
             train_embeddings_dir="embeddings/en", 
             audio_dir=None,
-            allowed_training_set="allowed_training_set.yaml", 
-            config_file="dataperf_speech_config.yaml",
+            allowed_training_set="config_files/allowed_training_set.yaml", 
+            config_file="config_files/dataperf_speech_config.yaml",
             outdir="/workdir"
 ):
     with open(config_file, "r") as fh:

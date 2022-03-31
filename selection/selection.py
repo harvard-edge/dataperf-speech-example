@@ -20,6 +20,15 @@ class TrainingSetSelection:
         train_set_size,
         audio_flag=False
     ) -> None:
+        """
+        Args:
+            train_embeddings: dict {"targets": {"dog":[{'ID':string,'feature_vector':np.array,'audio':np.array}, ...], ...}, "nontargets": [list]}
+
+            train_set_size: int (total number of samples to select)
+
+            audio_flag: bool (if audio is included in the training_embeddings)
+
+        """
 
         self.target_vectors = train_embeddings
         # {"targets": {"dog":[{'ID':string,'feature_vector':np.array,'audio':np.array}, ...], ...},
