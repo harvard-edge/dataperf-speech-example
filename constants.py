@@ -1,6 +1,7 @@
 # For setup file
 DEFAULT_SETUP_YAML_PATH = 'task_setup.yaml'
-SETUP_YAML_DATA_DIR_KEY = 'data_dir'
+SETUP_YAML_LOCAL_DATA_DIR_KEY = 'data_dir'
+SETUP_YAML_DOCKER_DATA_DIR_KEY = 'docker_data_dir'
 SETUP_YAML_DIM_KEY = 'dim'
 SETUP_YAML_TASKS_KEY = 'eval_tasks'
 SETUP_YAML_EMB_KEY = 'emb_file'

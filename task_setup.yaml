@@ -1,7 +1,4 @@
-# Embedding dimensionality
-dim: 256
-
-# Spark driver memory (recommend > 6g)
+# Memory used by Spark driver (recommend > 6g)
 spark_driver_memory: '6g'
 
 # Path for data directory. Note that all other paths in this setup 
@@ -13,13 +10,24 @@ data_dir: 'data'
 # Relative path for embedding file
 emb_file: 'embeddings/train_emb_256_dataperf.parquet'
 
-# Task name: [relative path to training set, relative path to test set]
+# Paths to training and test files for each tasks. Task names must match names
+# in eval_tasks above. See example below:
+# task_name: ['relative/path/to/training_set.csv', 'relative/path/to/test_set.csv']
 Cupcake: ['train_sets/random_500.csv', 'test_sets/alpha_test_set_Cupcake_256.parquet']
 Hawk: ['train_sets/random_500.csv', 'test_sets/alpha_test_set_Hawk_256.parquet']
 Sushi: ['train_sets/random_500.csv', 'test_sets/alpha_test_set_Sushi_256.parquet']
 
+# Relative path for results file
+results_dir: 'results'
+
+# Parameters specific to alpha below (likely not useful to modify)
+
+# Embedding dimensionality
+dim: 256
+
 # List the names of tasks to evaluate
 eval_tasks: ['Cupcake','Hawk','Sushi']
 
-# Relative path for results file
-results_dir: 'results'
+# Path for data directory in docker image.
+# DO NOT MODIFY
+docker_data_dir: 'data'

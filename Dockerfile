@@ -10,5 +10,4 @@ COPY *.py /app/
 COPY *.yaml /app/
 
 WORKDIR /app/
-
-ENTRYPOINT ["python3", "main.py"]
+ENTRYPOINT python3 main.py --docker_flag True
