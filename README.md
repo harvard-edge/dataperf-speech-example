@@ -4,6 +4,8 @@ This github repo serves as the starting point for offline evaluation of submissi
 
 For a detailed summary of the a benchmark, refer to the provided benchmark documentation.
 
+*Note that permission is required to view the benchmark documentation and download the required resources. Please contact will@coactive.ai to request access.*
+
 ## Requirements
 ### Download resources
 The following resources will need to be downloaded locally in order to run offline evaluation:
@@ -13,7 +15,7 @@ The following resources will need to be downloaded locally in order to run offli
 These resources can be downloaded in a .zip file at the following url
 
 ```
-https://drive.google.com/drive/folders/1wyb-EhmF5i2w7f8Ybqokdnrs6yjduiyL?usp=sharing
+https://drive.google.com/drive/folders/181uI-7NFJwK3IOPy2kOYVIQS4vZOC02A?usp=sharing
 ```
 
 ### Install dependencies
