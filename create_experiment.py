@@ -142,6 +142,12 @@ def main(
         train_df = source_df[source_df["clip_id"].isin(splits["train"])]
         dev_df = source_df[source_df["clip_id"].isin(splits["dev"])]
         test_df = source_df[source_df["clip_id"].isin(splits["test"])]
+
+        for df, sp in zip([train_df, dev_df, test_df], ["train", "dev", "test"]):
+            assert df.shape[0] == len(
+                splits[sp]
+            ), f"missing feature vectors in parquet for {sp}"
+
         # combine dev_df and test_df for eval
         eval_df = pd.concat([dev_df, test_df])
 
@@ -160,6 +166,9 @@ def main(
         train_eval_df = source_df[source_df["clip_id"].isin(wavs)]
 
         n_rows = train_eval_df.shape[0]
+        assert (
+            n_rows == GenerationParams.minimum_samples_for_nontarget_words
+        ), f"missing feature vectors for known nontarget {word}"
         train_df = train_eval_df.iloc[: n_rows // 2]
         eval_df = train_eval_df.iloc[n_rows // 2 :]
 
@@ -176,6 +185,10 @@ def main(
         source_df = pd.read_parquet(Path(path_to_embeddings) / (word + ".parquet"))
         eval_df = source_df[source_df["clip_id"].isin(wavs)]
         eval_set["nontargets"].extend(eval_df.clip_id)
+
+        assert (
+            eval_df.shape[0] == GenerationParams.minimum_samples_for_nontarget_words
+        ), f"missing feature vectors for unknown nontarget {word}"
 
         eval_df.to_parquet(eval_embeddings / (word + ".parquet"), index=False)
 
