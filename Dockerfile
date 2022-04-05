@@ -1,3 +1,6 @@
+# you can change the base layer and add any additional dependencies you need here, but 
+# do not modify the entrypoint
+
 FROM tensorflow/tensorflow:2.7.1
 
 COPY requirements.txt ./requirements.txt

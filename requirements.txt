@@ -2,5 +2,6 @@ pyyaml>=5.4.1
 fire
 numpy
 pandas
+scikit-learn
 pyarrow
 tqdm

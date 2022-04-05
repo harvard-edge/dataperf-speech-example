@@ -54,14 +54,16 @@ def main(
             fh
         )  # dict {"targets": {"dog":[list]}, "nontargets": [list]}
 
-    train_embeddings = dict(targets={}, nontargets=[])
+    # TODO(mmaz) coalesce reads here and in eval.py https://github.com/harvard-edge/dataperf-speech-example/issues/4
+
+    allowed_embeddings = dict(targets={}, nontargets=[])
     # {"targets": {"dog":[{'ID':string,'feature_vector':np.array,'audio':np.array}, ...], ...}, "nontargets": [list]}
     for target, id_list in tqdm.tqdm(allowed_training_embeddings["targets"].items(), desc="Loading targets"):
-        train_embeddings["targets"][target] = []
+        allowed_embeddings["targets"][target] = []
         target_parquet = pd.read_parquet(embedding_dataset / (target + ".parquet"))
         allowed_ids_mask = target_parquet["clip_id"].isin(id_list)
         for row in target_parquet[allowed_ids_mask].itertuples():
-            train_embeddings["targets"][target].append(
+            allowed_embeddings["targets"][target].append(
                 dict(ID=row.clip_id, feature_vector=row.mswc_embedding_vector)
             )
 
@@ -69,7 +71,7 @@ def main(
         label = Path(id).parts[0]  # "cat/common_voice_id_12345.wav"
         parquet_file = pd.read_parquet(embedding_dataset / (label + ".parquet"))
         row = parquet_file.loc[parquet_file["clip_id"] == id].iloc[0]
-        train_embeddings["nontargets"].append(
+        allowed_embeddings["nontargets"].append(
             dict(ID=row.clip_id, feature_vector=row.mswc_embedding_vector)
         )
 
@@ -79,16 +81,16 @@ def main(
         from scipy.io import wavfile
 
         audio_flag = True
-        for target, sample_list in train_embeddings["targets"].items():
+        for target, sample_list in allowed_embeddings["targets"].items():
             for sample in sample_list:
                 _, audio = wavfile.read(audio_dir + "/" + sample["ID"])
                 sample["audio"] = audio
-        for sample in train_embeddings["nontargets"]:
+        for sample in allowed_embeddings["nontargets"]:
             _, audio = wavfile.read(audio_dir + "/" + sample["ID"])
             sample["audio"] = audio
 
     selection = TrainingSetSelection(
-        train_embeddings=train_embeddings, config=config, audio_flag=audio_flag,
+        allowed_embeddings=allowed_embeddings, config=config, audio_flag=audio_flag,
     )
 
     train = selection.select()
@@ -103,7 +105,7 @@ def main(
         train.nontargets
     )
     assert (
-        n_selected < config["train_set_size_limit"]
+        n_selected <= config["train_set_size_limit"]
     ), f"{n_selected} samples selected, but the limit is {config['train_set_size_limit']}"
 
     output = Path(outdir) / "train.yaml"
