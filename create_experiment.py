@@ -12,28 +12,6 @@ import fire
 import tqdm
 import numpy as np
 
-"""
-for i, file in enumerate(target_files):
-    target_df = pd.read_parquet(file)
-    sampled_df = target_df["clip_id"].sample(
-        n=num_per_target[i], random_state=random_seed
-    )
-    targets[file.stem] = sampled_df.tolist()
-
-
-while len(nontargets) < num_nontarget:
-    file = random.choice(nontarget_files)
-    nontarget_df = df = pd.read_parquet(file)
-    if nontarget_df.shape[0] < (num_per_word_nontarget * 10):
-        continue
-    sampled_df = nontarget_df["clip_id"].sample(
-        n=num_per_word_nontarget, random_state=random_seed
-    )
-    nontargets.extend(sampled_df.tolist())
-
-
-"""
-
 
 @dataclass
 class GenerationParams:
@@ -45,6 +23,8 @@ class GenerationParams:
 
 def select_nontarget_samples(meta, language_isocode, target_words):
     """
+    choose a set of "known" nontargets (ones the classifier will use while training) and
+    a set of "unknown" nontargets which will be used in evaluation
     
     Returns: dict
         train_eval_nontarget will be equally dividided between training and eval samples
@@ -168,7 +148,9 @@ def main(
     # save parquets for nontarget samples
     nontarget_samples = select_nontarget_samples(meta, language_isocode, target_words)
     # training and eval (known nontargets)
-    for (word, wavs) in tqdm.tqdm(nontarget_samples["train_eval_nontarget"], desc="known nontargets"):
+    for (word, wavs) in tqdm.tqdm(
+        nontarget_samples["train_eval_nontarget"], desc="known nontargets"
+    ):
         source_df = pd.read_parquet(Path(path_to_embeddings) / (word + ".parquet"))
         train_eval_df = source_df[source_df["clip_id"].isin(wavs)]
 
@@ -183,7 +165,9 @@ def main(
         eval_df.to_parquet(eval_embeddings / (word + ".parquet"), index=False)
 
     # unknown nontargets (which the classifier has not seen before)
-    for (word, wavs) in tqdm.tqdm(nontarget_samples["unknown_nontarget"], desc="unknown nontargets"):
+    for (word, wavs) in tqdm.tqdm(
+        nontarget_samples["unknown_nontarget"], desc="unknown nontargets"
+    ):
         source_df = pd.read_parquet(Path(path_to_embeddings) / (word + ".parquet"))
         eval_df = source_df[source_df["clip_id"].isin(wavs)]
         eval_set["nontargets"].extend(eval_df.clip_id)
