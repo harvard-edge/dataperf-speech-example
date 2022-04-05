@@ -95,7 +95,7 @@ To use the raw audio in selection.py in addition to the embedding vectors:
 
 ### Glossary
 
-* Keyword spotting model (KWS model): Also referred to as a wakeword or hotword model, or a voice trigger detection model, this is a small ML speech model that is designed to recognize a small vocabulary of spoken words or phrases (e.g., Siri, Google Voice Assistant, Alexa)
+* Keyword spotting model (KWS model): Also referred to as a wakeword, hotword, or voice trigger detection model, this is a small ML speech model that is designed to recognize a small vocabulary of spoken words or phrases (e.g., Siri, Google Voice Assistant, Alexa)
 * Target sample: An example 1-second audio clip of a keyword used to train or evaluate a keyword-spotting model
 * Nontarget sample: 1-second audio clips of words which are outside of the KWS model's vocabulary, used to train or measure the model's ability to minimize false positive detections on non-keywords.
 * MSWC dataset: the [Multilingual Spoken Words Corpus](https://mlcommons.org/words), a dataset of 340,000 spoken words in 50 languages.
