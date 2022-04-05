@@ -1,19 +1,17 @@
 from pathlib import Path
 import fire
 import yaml
-from selection.selection import TrainingSetSelection
 import pandas as pd
 import numpy as np
 
-label_idx = 0 #IDs look like "en/clips/and/common_voice..." this is the index of the label
-
+from selection.selection import TrainingSetSelection
 
 def main(
-            train_embeddings_dir="embeddings/en", 
-            audio_dir=None,
-            allowed_training_set="config_files/allowed_training_set.yaml", 
-            config_file="config_files/dataperf_speech_config.yaml",
-            outdir="/workdir"
+    train_embeddings_dir="/embeddings/en",
+    audio_dir=None,
+    allowed_training_set="config_files/allowed_training_set.yaml",
+    config_file="config_files/dataperf_speech_config.yaml",
+    outdir="/workdir",
 ):
     with open(config_file, "r") as fh:
         config = yaml.safe_load(fh)
@@ -22,42 +20,47 @@ def main(
     embedding_dataset = Path(train_embeddings_dir)
 
     with open(allowed_training_set, "r") as fh:
-        allowed_training_embeddings = yaml.safe_load(fh) #dict {"targets": {"dog":[list]}, "nontargets": [list]}
+        allowed_training_embeddings = yaml.safe_load(
+            fh
+        )  # dict {"targets": {"dog":[list]}, "nontargets": [list]}
 
-
-    train_embeddings = {'targets':{}, 'non_targets':[]} # {"targets": {"dog":[{'ID':string,'feature_vector':np.array,'audio':np.array}, ...], ...}, "nontargets": [list]}
-    for target, id_list in allowed_training_embeddings['targets'].items():
-        train_embeddings['targets'][target] = []
+    train_embeddings = dict(targets={}, nontargets=[]) 
+    # {"targets": {"dog":[{'ID':string,'feature_vector':np.array,'audio':np.array}, ...], ...}, "nontargets": [list]}
+    for target, id_list in allowed_training_embeddings["targets"].items():
+        train_embeddings["targets"][target] = []
         target_parquet = pd.read_parquet(embedding_dataset / (target + ".parquet"))
         allowed_ids_mask = target_parquet["clip_id"].isin(id_list)
-        for row in target_parquet[allowed_ids_mask].itertuples(): 
-            train_embeddings['targets'][target].append({'ID':row.clip_id, 'feature_vector':row.mswc_embedding_vector})
+        for row in target_parquet[allowed_ids_mask].itertuples():
+            train_embeddings["targets"][target].append(
+                dict(ID=row.clip_id, feature_vector=row.mswc_embedding_vector)
+            )
 
     for id in allowed_training_embeddings["nontargets"]:
-        label = Path(id).parts[label_idx]
+        label = Path(id).parts[0]  # "cat/common_voice_id_12345.wav"
         parquet_file = pd.read_parquet(embedding_dataset / (label + ".parquet"))
-        row = parquet_file.loc[parquet_file['clip_id'] == id].iloc[0]
-        train_embeddings['non_targets'].append({'ID':row['clip_id'], 'feature_vector':row['mswc_embedding_vector']})
-    
+        row = parquet_file.loc[parquet_file["clip_id"] == id].iloc[0]
+        train_embeddings["nontargets"].append(
+            dict(ID=row.clip_id, feature_vector=row.mswc_embedding_vector)
+        )
+
     audio_flag = False
     if audio_dir is not None:
-        #TODO Test with wav files
+        # TODO Test with wav files
         from scipy.io import wavfile
+
         audio_flag = True
-        for target, sample_list in train_embeddings['targets'].items():
+        for target, sample_list in train_embeddings["targets"].items():
             for sample in sample_list:
-                _, audio = wavfile.read(audio_dir + '/' + sample['ID'])
-                sample['audio'] = audio
-        for sample in train_embeddings['non_targets']:
-            _, audio = wavfile.read(audio_dir + '/' + sample['ID'])
-            sample['audio'] = audio
-
-
+                _, audio = wavfile.read(audio_dir + "/" + sample["ID"])
+                sample["audio"] = audio
+        for sample in train_embeddings["nontargets"]:
+            _, audio = wavfile.read(audio_dir + "/" + sample["ID"])
+            sample["audio"] = audio
 
     selection = TrainingSetSelection(
-        train_embeddings = train_embeddings,
-        train_set_size = train_set_size_limit,
-        audio_flag = audio_flag
+        train_embeddings=train_embeddings,
+        train_set_size=train_set_size_limit,
+        audio_flag=audio_flag,
     )
 
     train = selection.select()

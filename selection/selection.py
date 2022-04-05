@@ -3,7 +3,7 @@ import dataclasses
 
 
 @dataclasses.dataclass
-#dict {"targets": {"dog":[list of IDs], ...}, "nontargets": [list of IDs]}
+# dict {"targets": {"dog":[list of IDs], ...}, "nontargets": [list of IDs]}
 class TrainingSet:
     targets: Dict[str, List[str]]
     nontargets: List[str]
@@ -14,12 +14,7 @@ from random import sample
 
 
 class TrainingSetSelection:
-    def __init__(
-        self,
-        train_embeddings,
-        train_set_size,
-        audio_flag=False
-    ) -> None:
+    def __init__(self, train_embeddings, train_set_size, audio_flag=False) -> None:
         """
         Args:
             train_embeddings: dict {"targets": {"dog":[{'ID':string,'feature_vector':np.array,'audio':np.array}, ...], ...}, "nontargets": [list]}
@@ -45,22 +40,22 @@ class TrainingSetSelection:
         """
 
         if self.audio_flag:
-            print(self.target_vectors['non_targets'][0]['audio'])
+            print(self.target_vectors["nontargets"][0]["audio"])
 
-        per_class_size = self.train_set_size // 6 #5 targets + nontarget
+        per_class_size = self.train_set_size // 6  # 5 targets + nontarget
 
         selected_targets = {}
-        for target, sample_list in self.target_vectors['targets'].items():
+        for target, sample_list in self.target_vectors["targets"].items():
             selected_samples = sample(sample_list, per_class_size)
-            selected_targets[target] = [sample['ID'] for sample in selected_samples]
+            selected_targets[target] = [sample["ID"] for sample in selected_samples]
 
-        selected_nontarget_samples = sample(self.target_vectors['non_targets'], per_class_size)
-        selected_nontargets = [sample['ID'] for sample in selected_nontarget_samples]
-
+        selected_nontarget_samples = sample(
+            self.target_vectors["nontargets"], per_class_size
+        )
+        selected_nontargets = [sample["ID"] for sample in selected_nontarget_samples]
 
         training_set = TrainingSet(
-            targets= selected_targets,
-            nontargets= selected_nontargets,
+            targets=selected_targets, nontargets=selected_nontargets,
         )
 
         return training_set
