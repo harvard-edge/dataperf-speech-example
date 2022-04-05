@@ -97,7 +97,7 @@ def main(
     :param target_words: comma-delimited list of target words to classify, for
       example, "fifty,episode,restaurant,route,job"
 
-    :param outdir: output directory to save the training and eval sets
+    :param outdir: output directory to save the training and eval yaml and parquet files
     """
 
     outdir = Path(outdir)
