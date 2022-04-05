@@ -76,6 +76,11 @@ def main(
     outdir: os.PathLike,
 ):
     """
+    Generates a dataperf-speech experiment as a set of feature vectors (referred to as
+    embeddings) for training and evaluation. The embeddings are stored as parquet files
+    (which can be read and written to by pandas) along with yaml files which enumerate
+    the allowed training examples and evaluation samples. 
+
     :param path_to_metadata: MSWC metadata in .json.gz format, can be downloaded 
       from https://storage.googleapis.com/public-datasets-mswc/metadata.json.gz
     
