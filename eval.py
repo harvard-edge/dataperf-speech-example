@@ -1,9 +1,12 @@
 import sklearn.linear_model
+import sklearn.svm
+import sklearn.ensemble
 import fire
 import numpy as np
 import yaml
 from pathlib import Path
 import pandas as pd
+import tqdm
 
 # Constants
 label_idx = 0  # IDs look like "and/common_voice..." this is the index of the label
@@ -57,13 +60,13 @@ def create_train_sets(
 def create_eval_sets(eval_data, eval_dataset, training_classes):
     eval_x = []
     eval_y = []
-    for id in eval_data["nontargets"]:
+    for id in tqdm.tqdm(eval_data["nontargets"], desc="loading eval nontargets"):
         label = Path(id).parts[label_idx]
         parquet_file = pd.read_parquet(eval_dataset / (label + ".parquet"))
         idx = parquet_file["clip_id"].tolist().index(id)
         eval_x.append(parquet_file["mswc_embedding_vector"][idx])
         eval_y.append(training_classes.index("nontargets"))
-    for label in eval_data["targets"].keys():
+    for label in tqdm.tqdm(eval_data["targets"].keys(), desc="loading eval targets"):
         parquet_file = pd.read_parquet(eval_dataset / (label + ".parquet"))
         for id in eval_data["targets"][label]:
             idx = parquet_file["clip_id"].tolist().index(id)
@@ -115,12 +118,19 @@ def main(
         print("Training set size limit: ", train_set_size_limit)
         raise ValueError("Selected training set is too large")
 
-    Percept = sklearn.linear_model.Perceptron(random_state=random_seed).fit(
-        train_x, train_y
+    # svm = sklearn.svm.SVC(random_state=random_seed, decision_function_shape="ovr").fit(
+    #     train_x, train_y
+    # )
+
+    clf = sklearn.ensemble.VotingClassifier(
+        estimators=[
+            ("svm", sklearn.svm.SVC(probability=True)),
+            ("lr", sklearn.linear_model.LogisticRegression()),
+        ],
+        voting="soft",
+        weights=None,
     )
-    svm = sklearn.svm.SVC(random_state=random_seed, decision_function_shape="ovr").fit(
-        train_x, train_y
-    )
+    clf.fit(train_x, train_y)
 
     # eval
     with open(eval_file, "r") as fh:
@@ -129,8 +139,7 @@ def main(
         )  # dict {"targets": {"dog":[list]}, "nontargets": [list]}
     eval_x, eval_y = create_eval_sets(eval_data, eval_dataset, training_classes)
 
-    print("Perceptron score", Percept.score(eval_x, eval_y))
-    print("svm score", svm.score(eval_x, eval_y))
+    print("score", clf.score(eval_x, eval_y))
 
 
 if __name__ == "__main__":
