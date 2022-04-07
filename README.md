@@ -38,16 +38,48 @@ If your code has additional dependencies, make sure to edit `requirements.txt` a
 You can run your selection algorithm locally (outside of docker) with the following command:
 
 ```
-python -m selection.main --outdir=./workdir
+python -m selection.main \
+  --allowed_training_set ../experiment/allowed_training_set.yaml \
+  --train_embeddings_dir ../experiment/train_embeddings/ \
+  --outdir ../experiment/
 ```
 
-This will write out `train.yaml` into the specified directory.
+This will write out `train.yaml` into the directory specified by `--outdir` (which can be the same `experiment/` directory).
 
 To evaluate your training set run:
 
 ```
-python eval.py --eval_file=eval.yaml --train_file=workdir/train.yaml
+python eval.py \
+  --eval_embeddings_dir ../experiment/eval_embeddings/ \
+  --train_embeddings_dir ../experiment/train_embeddings/ \
+  --allowed_training_set ../experiment/allowed_training_set.yaml \
+  --eval_file ../experiment/eval.yaml \
+  --train_file ../experiment/train.yaml \
+  --config_file config_files/dataperf_speech_config.yaml
+
 ```
+
+### Generating new experiments for development and testing
+
+The following script can generate new experiments with custom words:
+
+```
+mkdir ../new_experiment
+python create_experiment.py \
+  --path_to_metadata /path/to/metadata.json.gz \
+  --language_isocode en \
+  --path_to_splits_csv /path/to/en_splits.csv \
+  --path_to_embeddings /path/to/embeddings/en/ \
+  --target_words weather,date,time,schedule,reminder \
+  --outdir ../new_experiment
+
+```
+
+MSWC metadata is [available here](https://storage.googleapis.com/public-datasets-mswc/metadata.json.gz)
+
+MSWC train/dev/test splits can be downloaded at <https://mlcommons.org/words>. For example, English splits are [available here](https://storage.googleapis.com/public-datasets-mswc/splits/en.tar.gz)
+
+MSWC embeddings can be downloaded here: **TBD: public link coming soon, currently available to alpha participants**
 
 ### Creating a submission
 
