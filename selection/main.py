@@ -8,6 +8,7 @@ import numpy as np
 import tqdm
 
 from selection.selection import TrainingSetSelection
+from selection.load_samples import load_samples
 
 
 def main(
@@ -43,63 +44,36 @@ def main(
 
     """
 
-    # TODO(mmaz) need an override mechanism, see https://github.com/harvard-edge/dataperf-speech-example/issues/3
-    with open(config_file, "r") as fh:
-        config = yaml.safe_load(fh)
-
-    embedding_dataset = Path(train_embeddings_dir)
-
-    with open(allowed_training_set, "r") as fh:
-        allowed_training_embeddings = yaml.safe_load(
-            fh
-        )  # dict {"targets": {"dog":[list]}, "nontargets": [list]}
-
-    # TODO(mmaz) coalesce reads here and in eval.py https://github.com/harvard-edge/dataperf-speech-example/issues/4
-
-    allowed_embeddings = dict(targets={}, nontargets=[])
-    # {"targets": {"dog":[{'ID':string,'feature_vector':np.array,'audio':np.array}, ...], ...}, "nontargets": [list]}
-    for target, id_list in tqdm.tqdm(allowed_training_embeddings["targets"].items(), desc="Loading targets"):
-        allowed_embeddings["targets"][target] = []
-        target_parquet = pd.read_parquet(embedding_dataset / (target + ".parquet"))
-        allowed_ids_mask = target_parquet["clip_id"].isin(id_list)
-        for row in target_parquet[allowed_ids_mask].itertuples():
-            allowed_embeddings["targets"][target].append(
-                dict(ID=row.clip_id, feature_vector=row.mswc_embedding_vector)
-            )
-
-    for id in tqdm.tqdm(allowed_training_embeddings["nontargets"], desc="Loading nontargets"):
-        label = Path(id).parts[0]  # "cat/common_voice_id_12345.wav"
-        parquet_file = pd.read_parquet(embedding_dataset / (label + ".parquet"))
-        row = parquet_file.loc[parquet_file["clip_id"] == id].iloc[0]
-        allowed_embeddings["nontargets"].append(
-            dict(ID=row.clip_id, feature_vector=row.mswc_embedding_vector)
-        )
-
-    audio_flag = False
-    if audio_dir is not None:
-        # TODO Test with wav files
-        from scipy.io import wavfile
-
-        audio_flag = True
-        for target, sample_list in allowed_embeddings["targets"].items():
-            for sample in sample_list:
-                _, audio = wavfile.read(audio_dir + "/" + sample["ID"])
-                sample["audio"] = audio
-        for sample in allowed_embeddings["nontargets"]:
-            _, audio = wavfile.read(audio_dir + "/" + sample["ID"])
-            sample["audio"] = audio
-
-    selection = TrainingSetSelection(
-        allowed_embeddings=allowed_embeddings, config=config, audio_flag=audio_flag,
-    )
-
-    train = selection.select()
-
     assert Path(
         outdir
     ).is_dir(), (
         f"{outdir} does not exist, please specify --outdir as a command line argument"
     )
+
+    # TODO(mmaz) need an override mechanism, see https://github.com/harvard-edge/dataperf-speech-example/issues/3
+    config = yaml.safe_load(Path(config_file).read_text())
+
+
+    # dict {"targets": {"dog":[list]}, "nontargets": [list]}
+    allowed_training_ids = yaml.safe_load(Path(allowed_training_set).read_text())
+
+    allowed_training_embeddings = load_samples(
+        sample_ids=allowed_training_ids,
+        embeddings_dir=train_embeddings_dir,
+        audio_dir=audio_dir,
+    )
+
+    audio_flag = False
+    if audio_dir is not None:
+        audio_flag = True
+
+    selection = TrainingSetSelection(
+        allowed_embeddings=allowed_training_embeddings,
+        config=config,
+        audio_flag=audio_flag,
+    )
+
+    train = selection.select()
 
     n_selected = sum([len(sample_ids) for sample_ids in train.targets.values()]) + len(
         train.nontargets
