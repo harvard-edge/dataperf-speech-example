@@ -2,9 +2,9 @@
 ### **Current version:** alpha 
 This github repo serves as the starting point for offline evaluation of submissions for the training data selection visual benchmark. The offline evaluation can be run on both your local environment as well as a containerized image for reproducibility of score results.
 
-For a detailed summary of the a benchmark, refer to the provided benchmark documentation.
+For a detailed summary of the a benchmark, refer to the provided [benchmark documentation](https://docs.google.com/document/d/15ACh9pNn16GjgJKVRuBHhtiIMhhRIMkd_yPjFyb9JcE/edit?usp=sharing).
 
-*Note that permission is required to view the benchmark documentation and download the required resources. Please contact will@coactive.ai to request access.*
+*Note that permission is required to view the benchmark documentation and download the required resources. Please contact dataperf@coactive.ai to request access.*
 
 ## Requirements
 ### Download resources
