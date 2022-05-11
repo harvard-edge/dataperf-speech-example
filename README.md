@@ -1,4 +1,4 @@
-# `dataperf-visual-selection`: A Data-Centric Visual Benchmark for Training Data Selection
+# `dataperf-vision-selection`: A Data-Centric Visual Benchmark for Training Data Selection
 ### **Current version:** alpha 
 This github repo serves as the starting point for offline evaluation of submissions for the training data selection visual benchmark. The offline evaluation can be run on both your local environment as well as a containerized image for reproducibility of score results.
 
@@ -49,9 +49,9 @@ pip install -r dataperf-vision-selection/requirements.txt
 A template filesystem with the following structure is provided in the repo. Move the embeddings file and the tests sets to the appropriate folders in this template filesystem
 
 ```
-unzip dataperf-visual-selection-resources.zip
-mv dataperf-visual-selection-resources/embeddings/* dataperf-vision-selection/data/embeddings/
-mv dataperf-visual-selection-resources/test_sets/* dataperf-vision-selection/data/test_sets/
+unzip dataperf-vision-selection-resources.zip
+mv dataperf-vision-selection-resources/embeddings/* dataperf-vision-selection/data/embeddings/
+mv dataperf-vision-selection-resources/test_sets/* dataperf-vision-selection/data/test_sets/
 ```
 
 The resulting filesystem in the repo should look as follows
