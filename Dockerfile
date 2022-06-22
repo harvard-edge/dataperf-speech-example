@@ -1,9 +1,12 @@
+# you can change the base layer and add any additional dependencies you need here, but 
+# do not modify the entrypoint
+
 FROM tensorflow/tensorflow:2.7.1
 
-COPY requirements.txt /app/requirements.txt
-RUN pip install -r /app/requirements.txt
+COPY requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r ./requirements.txt
 
-COPY . /app/
-WORKDIR /app/
+
+COPY selection/ ./selection/
 
 ENTRYPOINT ["python", "-m", "selection.main"]

@@ -1,3 +1,9 @@
 #!/bin/bash
 
-python3 eval.py ${eval_path}/eval.pb ${eval_path}/samples.pb --train_file=${train_path}/train.yaml 2>&1 | tee tee ${log_path}
+python eval.py \
+  --eval_embeddings_dir ${eval_embeddings_dir} \
+  --train_embeddings_dir ${train_embeddings_dir} \
+  --allowed_training_set ${allowed_training_set} \
+  --eval_file ${eval_file} \
+  --train_file ${train_file} \
+  --config_file ${config_file} 2>&1 | tee ${log_path}

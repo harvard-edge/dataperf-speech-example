@@ -16,7 +16,7 @@ docker:
 
 tasks:
   download:
-    # Download sample data
+    # Download dataset
     parameters:
       inputs: { parameters_file: { type: file, default: parameters.yaml } }
       outputs: { output_path: data/ }
@@ -24,15 +24,23 @@ tasks:
   select:
     # Run selection algorithm
     parameters:
-      inputs: { data_path: data/}
-      outputs: { output_path: select_output/ }
+      inputs:
+        {
+          allowed_training_set: { type: file, default: allowed_training_set.yaml },
+          train_embeddings_dir: train_embeddings/,
+        }
+      outputs: { outdir: select_output/ }
 
   evaluate:
     # Perfom evaluation
     parameters:
       inputs:
         {
-          eval_path: data/,
-          train_path: select_output/
+          eval_embeddings_dir: eval_embeddings/,
+          train_embeddings_dir: train_embeddings/,
+          allowed_training_set: { type: file, default: allowed_training_set.yaml },
+          eval_file: { type: file, default: eval.yaml },
+          train_file: { type: file, default: train.yaml },
+          config_file: { type: file, default: dataperf_speech_config.yaml },
         }
       outputs: { log_path: { type: file, default: log.txt } }

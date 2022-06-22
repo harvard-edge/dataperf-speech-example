@@ -1,48 +1,128 @@
-import sklearn.linear_model
+from pathlib import Path
+
 import fire
 import numpy as np
+import pandas as pd
+import sklearn.ensemble
+import sklearn.linear_model
+import sklearn.svm
+import tqdm
 import yaml
-from selection.serialization import deserialize
+
+from selection.load_samples import load_samples
 
 
-def main(eval_file, input_samples, train_file="train.yaml"):
+def validate_selected_ids(selected_ids, allowed_training_ids, train_set_size_limit):
+    groundtruth_targets = set(allowed_training_ids["targets"].keys())
+    for target in selected_ids["targets"].keys():
+        assert target in groundtruth_targets, f"target {target} not in allowed set"
 
-    eval_data = deserialize.deserialize_from_pb(eval_file)
-    eval_target = eval_data["target_mswc_vectors"]
-    eval_nontarget = eval_data["nontarget_mswc_vectors"]
-    eval_x = np.vstack([eval_target, eval_nontarget])
-    eval_y = np.concatenate(
-        [np.ones(eval_target.shape[0]), np.zeros(eval_nontarget.shape[0])]
+    groundtruth_target_ids = {
+        target: set(samples)
+        for target, samples in allowed_training_ids["targets"].items()
+    }
+    for target, samples in selected_ids["targets"].items():
+        assert set(samples).issubset(
+            groundtruth_target_ids[target]
+        ), f"{target} contains an ID not in allowed set"
+
+    groundtruth_nontarget_ids = set(allowed_training_ids["nontargets"])
+    assert set(selected_ids["nontargets"]).issubset(
+        groundtruth_nontarget_ids
+    ), f"nontargets contain an ID not in allowed set"
+
+    n_training_samples = sum(
+        [len(samples) for samples in selected_ids["targets"].values()]
+    ) + len(selected_ids["nontargets"])
+    assert (
+        n_training_samples <= train_set_size_limit
+    ), f"{n_training_samples} samples exceeds limit of {train_set_size_limit}"
+
+
+def create_dataset(embeddings):
+    """
+    Creates an sklearn-compatible dataset from an embedding dict
+    """
+    target_to_classid = {
+        target: ix + 1 for ix, target in enumerate(embeddings["targets"].keys())
+    }
+    target_to_classid["nontarget"] = 0
+
+    target_samples = np.array(
+        [
+            sample["feature_vector"]
+            for target, samples in embeddings["targets"].items()
+            for sample in samples
+        ]
     )
 
-    sample_data = deserialize.deserialize_from_pb(input_samples)
-    target_vectors = sample_data["target_mswc_vectors"]
-    target_ids = sample_data["target_ids"]
-    nontarget_vectors = sample_data["nontarget_mswc_vectors"]
-    nontarget_ids = sample_data["nontarget_ids"]
-
-    # TODO(mmaz) ensure these are a proper subset
-    with open(train_file, "r") as fh:
-        train_data = yaml.safe_load(fh)
-
-    train_target_ids = set(train_data["target_ids"])
-    train_nontarget_ids = set(train_data["nontarget_ids"])
-    train_target_vectors = []
-    for ix, target_id in enumerate(target_ids):
-        if target_id in train_target_ids:
-            train_target_vectors.append(target_vectors[ix])
-    train_nontarget_vectors = []
-    for ix, nontarget_id in enumerate(nontarget_ids):
-        if nontarget_id in train_nontarget_ids:
-            train_nontarget_vectors.append(nontarget_vectors[ix])
-
-    train_x = np.vstack([train_target_vectors, train_nontarget_vectors])
-    train_y = np.concatenate(
-        [np.ones(len(train_target_vectors)), np.zeros(len(train_nontarget_vectors))]
+    target_labels = np.array(
+        [
+            target_to_classid[target]
+            for (target, samples) in embeddings["targets"].items()
+            for sample in samples
+        ]
     )
 
-    clf = sklearn.linear_model.LogisticRegression(random_state=0).fit(train_x, train_y)
-    print("eval score", clf.score(eval_x, eval_y))
+    nontarget_samples = np.array(
+        [sample["feature_vector"] for sample in embeddings["nontargets"]]
+    )
+    nontarget_labels = np.zeros(nontarget_samples.shape[0])
+
+    Xs = np.vstack([target_samples, nontarget_samples])
+    ys = np.concatenate([target_labels, nontarget_labels])
+    return Xs, ys
+
+
+def main(
+    eval_embeddings_dir="embeddings/en",  # embeddings dir point to the same parquet file for testing and online eval
+    train_embeddings_dir="embeddings/en",
+    allowed_training_set="allowed_training_set.yaml",
+    eval_file="eval.yaml",
+    train_file="workdir/train.yaml",
+    config_file="dataperf_speech_config.yaml",
+):
+
+    config = yaml.safe_load(Path(config_file).read_text())
+    train_set_size_limit = config["train_set_size_limit"]
+    random_seed = config["random_seed"]
+
+    allowed_training_ids = yaml.safe_load(Path(allowed_training_set).read_text())
+    selected_ids = yaml.safe_load(Path(train_file).read_text())
+
+    print("validating selected IDs")
+    validate_selected_ids(selected_ids, allowed_training_ids, train_set_size_limit)
+
+    print("loading selected training data")
+    selected_embeddings = load_samples(
+        sample_ids=selected_ids, embeddings_dir=train_embeddings_dir
+    )
+    print("loading eval data")
+    eval_ids = yaml.safe_load(Path(eval_file).read_text())
+    eval_embeddings = load_samples(
+        sample_ids=eval_ids, embeddings_dir=eval_embeddings_dir
+    )
+
+    train_x, train_y = create_dataset(selected_embeddings)
+
+    # svm = sklearn.svm.SVC(random_state=random_seed, decision_function_shape="ovr").fit(
+    #     train_x, train_y
+    # )
+
+    clf = sklearn.ensemble.VotingClassifier(
+        estimators=[
+            ("svm", sklearn.svm.SVC(probability=True, random_state=random_seed)),
+            ("lr", sklearn.linear_model.LogisticRegression(random_state=random_seed)),
+        ],
+        voting="soft",
+        weights=None,
+    )
+    clf.fit(train_x, train_y)
+
+    # eval
+    eval_x, eval_y = create_dataset(eval_embeddings)
+
+    print("score", clf.score(eval_x, eval_y))
 
 
 if __name__ == "__main__":

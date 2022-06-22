@@ -1,7 +1,13 @@
-# yacs>=0.1.8
 pyyaml>=5.4.1
 fire
 protobuf
 typer
 gdown
 sklearn
+numpy
+pandas
+scikit-learn
+pyarrow
+tqdm
+scipy
+wget

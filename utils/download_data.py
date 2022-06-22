@@ -2,13 +2,17 @@
 import argparse
 import os
 import yaml
-import gdown
+import wget
+import tarfile
 
 
-def download_file(url, folder_path, file_name):
-    """Download file from Google Drive"""
-    output_path = os.path.join(folder_path, file_name)
-    gdown.download(url, output_path, quiet=False, fuzzy=True)
+def download_file(url, folder_path, extract=False):
+    """Download file from internet"""
+    output_path = wget.download(url, out=folder_path)
+    if extract:
+        tar = tarfile.open(output_path, "r:gz")
+        tar.extractall(folder_path)
+        tar.close()
 
 
 def main():
@@ -22,10 +26,7 @@ def main():
         help="File containing parameters for the download",
     )
     parser.add_argument(
-        "--output_path",
-        type=str,
-        required=True,
-        help="Path where data will be stored",
+        "--output_path", type=str, required=True, help="Path where data will be stored",
     )
     args = parser.parse_args()
 
@@ -33,11 +34,13 @@ def main():
         params = yaml.full_load(f)
 
     output_path = args.output_path
-    samples_url = params["samples_url"]
-    eval_url = params["eval_url"]
+    dataset_url = params["dataset_url"]
+    metadata_url = params["metadata_url"]
+    embeddings_url = params["embeddings_url"]
 
-    download_file(samples_url, output_path, "samples.pb")
-    download_file(eval_url, output_path, "eval.pb")
+    download_file(metadata_url, output_path)
+    download_file(dataset_url, output_path, extract=True)
+    download_file(embeddings_url, output_path, extract=True)
 
 
 if __name__ == "__main__":
