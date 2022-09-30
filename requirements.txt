@@ -6,3 +6,5 @@ scikit-learn
 pyarrow
 tqdm
 scipy
+cleanlab==2.0.0
+scikit-learn-extra==0.2.0

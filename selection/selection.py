@@ -8,8 +8,10 @@ import sklearn.svm
 import sklearn.linear_model
 import tqdm
 
-# include additional dependencies as needed
-
+# include additional dependencies as needed:
+import cleanlab
+from cleanlab.classification import CleanLearning
+from sklearn_extra.cluster import KMedoids
 
 @dataclass
 class TrainingSet:
@@ -40,9 +42,11 @@ class TrainingSetSelection:
         self.random_seed = config["random_seed"]
         self.audio_flag = audio_flag
 
-    def select(self):
+    def select(self, method="cleanlab_kmedoids"):
         """"
-        Replace this with your custom training set selection algorithm
+        method: str
+            "original" runs original example selection code.
+            "cleanlab" runs cleanlab for selecting data samples.
 
         Returns: 
             TrainingSet
@@ -86,6 +90,7 @@ class TrainingSetSelection:
         )
         nontarget_labels = np.zeros(nontarget_samples.shape[0])
 
+        if method == "original":
         # as a simple, coarse baseline, we perform a nested crossvalidation
         # where the outer loop selects different subsets of the target samples
         # and the inner loop selects different subsets of the nontarget samples,
@@ -93,79 +98,168 @@ class TrainingSetSelection:
         # In particular, since there are more nontarget samples than target samples
         # in the evaluation set, we want to find a useful representative subset
         # for training.
+            print("Using original method to select data subset ...")
+            best_score = 0
+            best_target_train_ixs = None
+            best_nontarget_train_ixs = None
 
-        best_score = 0
-        best_target_train_ixs = None
-        best_nontarget_train_ixs = None
+            n_folds = 10
 
-        n_folds = 10
-
-        # stratified shuffle split will reflect the percentage of each target
-        # in the allowed set - i.e., if the allowed targets have 5000 samples of
-        # "job" and 2500 samples of "restaurant", each fold will have twice
-        # the number of samples of "job" than "restaurant"
-        # - this might or might not be what you want!
-        crossfold_targets = sklearn.model_selection.StratifiedShuffleSplit(
-            n_splits=n_folds,
-            train_size=per_class_size * len(self.embeddings["targets"].keys()),
-            random_state=self.random_seed,
-        )
-
-        for target_train_ixs, target_val_ixs in tqdm.tqdm(
-            crossfold_targets.split(target_samples, target_labels),
-            desc="k-fold cross validation",
-            total=n_folds,
-        ):
-
-            crossfold_nontargets = sklearn.model_selection.StratifiedShuffleSplit(
+            # stratified shuffle split will reflect the percentage of each target
+            # in the allowed set - i.e., if the allowed targets have 5000 samples of
+            # "job" and 2500 samples of "restaurant", each fold will have twice
+            # the number of samples of "job" than "restaurant"
+            # - this might or might not be what you want!
+            crossfold_targets = sklearn.model_selection.StratifiedShuffleSplit(
                 n_splits=n_folds,
-                train_size=per_class_size,
+                train_size=per_class_size * len(self.embeddings["targets"].keys()),
                 random_state=self.random_seed,
             )
-            for nontarget_train_ixs, nontarget_val_ixs in crossfold_nontargets.split(
-                nontarget_samples, nontarget_labels
+
+            for target_train_ixs, target_val_ixs in tqdm.tqdm(
+                crossfold_targets.split(target_samples, target_labels),
+                desc="k-fold cross validation",
+                total=n_folds,
             ):
 
-                train_Xs = np.vstack(
-                    [
-                        target_samples[target_train_ixs],
-                        nontarget_samples[nontarget_train_ixs],
-                    ]
+                crossfold_nontargets = sklearn.model_selection.StratifiedShuffleSplit(
+                    n_splits=n_folds,
+                    train_size=per_class_size,
+                    random_state=self.random_seed,
                 )
-                train_ys = np.concatenate(
-                    [
-                        target_labels[target_train_ixs],
-                        nontarget_labels[nontarget_train_ixs],
-                    ]
-                )
+                for nontarget_train_ixs, nontarget_val_ixs in crossfold_nontargets.split(
+                    nontarget_samples, nontarget_labels
+                ):
 
-                clf = sklearn.ensemble.VotingClassifier(
-                    estimators=[
-                        ("svm", sklearn.svm.SVC(probability=True)),
-                        ("lr", sklearn.linear_model.LogisticRegression()),
-                    ],
-                    voting="soft",
-                    weights=None,
-                )
-                clf.fit(train_Xs, train_ys)
+                    train_Xs = np.vstack(
+                        [
+                            target_samples[target_train_ixs],
+                            nontarget_samples[nontarget_train_ixs],
+                        ]
+                    )
+                    train_ys = np.concatenate(
+                        [
+                            target_labels[target_train_ixs],
+                            nontarget_labels[nontarget_train_ixs],
+                        ]
+                    )
 
-                val_Xs = np.vstack(
-                    [
-                        target_samples[target_val_ixs],
-                        nontarget_samples[nontarget_val_ixs],
-                    ]
-                )
-                val_ys = np.concatenate(
-                    [target_labels[target_val_ixs], nontarget_labels[nontarget_val_ixs]]
-                )
+                    clf = sklearn.ensemble.VotingClassifier(
+                        estimators=[
+                            ("svm", sklearn.svm.SVC(probability=True)),
+                            ("lr", sklearn.linear_model.LogisticRegression()),
+                        ],
+                        voting="soft",
+                        weights=None,
+                    )
+                    clf.fit(train_Xs, train_ys)
 
-                score = clf.score(val_Xs, val_ys)
-                if score > best_score:
-                    best_score = score
-                    best_target_train_ixs = target_train_ixs
-                    best_nontarget_train_ixs = nontarget_train_ixs
+                    val_Xs = np.vstack(
+                        [
+                            target_samples[target_val_ixs],
+                            nontarget_samples[nontarget_val_ixs],
+                        ]
+                    )
+                    val_ys = np.concatenate(
+                        [target_labels[target_val_ixs], nontarget_labels[nontarget_val_ixs]]
+                    )
 
-        print(f"{best_score=}")
+                    score = clf.score(val_Xs, val_ys)
+                    if score > best_score:
+                        best_score = score
+                        best_target_train_ixs = target_train_ixs
+                        best_nontarget_train_ixs = nontarget_train_ixs
+
+            print(f"{best_score=}")
+
+        elif method == "cleanlab":
+            print("Using cleanlab to select data subset ...")
+            SEED = 123
+            NUM_FOLDS = 2  # can significantly speed up code by decreasing this to 2
+            SUBSET_SIZE = 120
+            clf = sklearn.ensemble.VotingClassifier(
+                        estimators=[
+                            ("svm", sklearn.svm.SVC(probability=True)),
+                            ("lr", sklearn.linear_model.LogisticRegression()),
+                        ],
+                        voting="soft",
+                        weights=None,
+                    )
+            cl = cleanlab.classification.CleanLearning(clf, seed=SEED, verbose=True, cv_n_folds=NUM_FOLDS)
+            Xs = np.vstack(
+                        [
+                            target_samples,
+                            nontarget_samples,
+                        ]
+                    )
+            ys = np.concatenate(
+                        [
+                            target_labels,
+                            nontarget_labels,
+                        ]
+                    )
+            ys = ys.astype(int)
+            issues = cl.find_label_issues(Xs, ys)
+            issues = issues
+            best_indices = issues['label_quality'].values.argsort()[::-1][:SUBSET_SIZE]  # decreasing order
+            # best_indices = issues['label_quality'].values.argsort()[:SUBSET_SIZE]  # increasing order TODO remove!
+            # print('worst indices selected')
+
+            best_target_train_ixs = [x for x in best_indices if x < len(target_samples)]
+            best_nontarget_train_ixs = [x-len(target_samples) for x in best_indices if x >= len(target_samples)]
+
+        elif method == "cleanlab_kmedoids":
+            print("Using cleanlab and then K-medoids clustering to select data subset ...")
+            SEED = 123
+            NUM_FOLDS = 10  # can significantly speed up code by decreasing this to 2
+            SUBSET_SIZE = 120
+            CLEANLAB_FRAC = 0.5  # what fraction of datapoints to delete with lowest cleanlab scores (beyond default cleanlab filter)
+            clf = sklearn.ensemble.VotingClassifier(
+                        estimators=[
+                            ("svm", sklearn.svm.SVC(probability=True)),
+                            ("lr", sklearn.linear_model.LogisticRegression()),
+                        ],
+                        voting="soft",
+                        weights=None,
+                    )
+            cl = cleanlab.classification.CleanLearning(clf, seed=SEED, verbose=True, cv_n_folds=NUM_FOLDS)
+            Xs = np.vstack(
+                        [
+                            target_samples,
+                            nontarget_samples,
+                        ]
+                    )
+            ys = np.concatenate(
+                        [
+                            target_labels,
+                            nontarget_labels,
+                        ]
+                    )
+            ys = ys.astype(int)
+            issues = cl.find_label_issues(Xs, ys)
+            bad_indices_filter = np.where(issues['is_label_issue'])[0]
+            num_delete_cleanlab = int(CLEANLAB_FRAC * len(ys))
+            bad_indices_rank = issues['label_quality'].values.argsort()[:num_delete_cleanlab]
+            bad_indices = np.unique(np.concatenate((bad_indices_filter,bad_indices_rank),0))
+            issues.drop(bad_indices, axis=0, inplace=True)
+            inds_to_keep = issues.index.values
+
+            # Cluster remaining data:
+            big_labels = ys[inds_to_keep,np.newaxis] * 1000  # multiply labels by large value to ensure clustering is label-aware:
+            data_to_cluster = np.concatenate([Xs[inds_to_keep], big_labels], axis=1)
+            # clstr = sklearn.cluster.KMeans(n_clusters=SUBSET_SIZE)
+            # cluster_ids = clstr.fit_predict(data_to_cluster)
+            clstr = KMedoids(n_clusters=SUBSET_SIZE, init="k-medoids++")
+            clstr.fit(data_to_cluster)
+            coreset_inds = clstr.medoid_indices_
+            
+            # Extract indices:
+            best_indices = inds_to_keep[coreset_inds]
+            best_target_train_ixs = [x for x in best_indices if x < len(target_samples)]
+            best_nontarget_train_ixs = [x-len(target_samples) for x in best_indices if x >= len(target_samples)]
+
+        else:
+            raise ValueError(f"invalid method chosen: {method}")
 
         selected_targets = {k: [] for k in self.embeddings["targets"].keys()}
         for target_ix in best_target_train_ixs:
