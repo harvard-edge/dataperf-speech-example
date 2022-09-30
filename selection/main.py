@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import tqdm
 
-from selection.selection import TrainingSetSelection
+from selection.baseline_selection import TrainingSetSelection
 from selection.load_samples import load_samples
 
 
