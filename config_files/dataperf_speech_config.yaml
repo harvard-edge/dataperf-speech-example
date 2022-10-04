@@ -1,2 +1,4 @@
 train_set_size_limit: 120
 random_seed: 0
+selection_algorithm_module: "selection.implementations.baseline_selection"
+selection_algorithm_class: "BaselineSelection"
