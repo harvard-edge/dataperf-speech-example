@@ -13,34 +13,12 @@ import cleanlab
 from cleanlab.classification import CleanLearning
 from sklearn_extra.cluster import KMedoids
 
-@dataclass
-class TrainingSet:
-    """
-    dict {"targets": {"dog":[list of IDs], ...}, "nontargets": [list of IDs]}
-    """
-
-    targets: Dict[str, List[str]]
-    nontargets: List[str]
+from selection.selection import TrainingSetSelection, TrainingSet
 
 
-class TrainingSetSelection:
-    def __init__(self, allowed_embeddings, config, audio_flag=False) -> None:
-        """
-        Args:
-            allowed_embeddings: dict {"targets": {"dog":[{'ID':string,'feature_vector':np.array,'audio':np.array}, ...], ...}, "nontargets": [list]}
-
-            train_set_size: int (total number of samples to select)
-
-            audio_flag: bool (if audio is included in the allowed_embeddings)
-
-        """
-
-        self.embeddings = allowed_embeddings
-        # {"targets": {"dog":[{'ID':string,'feature_vector':np.array,'audio':np.array}, ...], ...},
-        #  "nontargets": [{'ID':string,'feature_vector':np.array,'audio':np.array}, ...]}
-        self.train_set_size = config["train_set_size_limit"]
-        self.random_seed = config["random_seed"]
-        self.audio_flag = audio_flag
+class CleanlabsSelection(TrainingSetSelection):
+    def __init__(self, **kwargs) -> None:
+        super(CleanlabsSelection, self).__init__(**kwargs)
 
     def select(self):
         """"
