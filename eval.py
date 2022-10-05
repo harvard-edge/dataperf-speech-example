@@ -11,6 +11,10 @@ import yaml
 
 from selection.load_samples import load_samples
 
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import f1_score
+
 
 def validate_selected_ids(selected_ids, allowed_training_ids, train_set_size_limit):
     groundtruth_targets = set(allowed_training_ids["targets"].keys())
@@ -122,8 +126,10 @@ def main(
     # eval
     eval_x, eval_y = create_dataset(eval_embeddings)
 
-    print("score", clf.score(eval_x, eval_y))
+    pred_y = clf.predict(eval_x)
 
+    print("Score: ", balanced_accuracy_score(eval_y, pred_y))
+    
 
 if __name__ == "__main__":
     fire.Fire(main)

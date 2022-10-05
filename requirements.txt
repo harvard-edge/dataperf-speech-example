@@ -3,7 +3,6 @@ fire
 protobuf
 typer
 gdown
-sklearn
 numpy
 pandas
 scikit-learn
@@ -11,3 +10,5 @@ pyarrow
 tqdm
 scipy
 wget
+cleanlab==2.0.0
+scikit-learn-extra==0.2.0
