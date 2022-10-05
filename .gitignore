@@ -132,3 +132,7 @@ dmypy.json
 
 # Scratch space
 scratch/
+
+# MLCube
+workspace/*
+!workspace/parameters.yaml
