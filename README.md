@@ -1,5 +1,7 @@
 # `dataperf-vision-selection`: A Data-Centric Visual Benchmark for Training Data Selection
-### **Current version:** alpha 
+
+### **Current version:** alpha
+
 This github repo serves as the starting point for offline evaluation of submissions for the training data selection visual benchmark. The offline evaluation can be run on both your local environment as well as a containerized image for reproducibility of score results.
 
 For a detailed summary of the a benchmark, refer to the provided [benchmark documentation](https://docs.google.com/document/d/15ACh9pNn16GjgJKVRuBHhtiIMhhRIMkd_yPjFyb9JcE/edit?usp=sharing).
@@ -7,8 +9,11 @@ For a detailed summary of the a benchmark, refer to the provided [benchmark docu
 *Note that permission is required to view the benchmark documentation and download the required resources. Please contact dataperf@coactive.ai to request access.*
 
 ## Requirements
+
 ### Download resources
+
 The following resources will need to be downloaded locally in order to run offline evaluation:
+
 - Embeddings for candidate pool of training images (.parquet file)
 - Test sets for each classification task (.parquet files)
 
@@ -19,18 +24,20 @@ https://drive.google.com/drive/folders/181uI-7NFJwK3IOPy2kOYVIQS4vZOC02A?usp=sha
 ```
 
 ### Install dependencies
+
 For running as a containerized image:
+
 - `docker` for building the containerized image
 - `docker-compose` for running the scoring service with the appropriate resources
 
 Installation instructions can be found at the following links: [Docker](https://docs.docker.com/get-docker/), [Docker compose](https://docs.docker.com/compose/install/)
 
 For running locally:
+
 - Python (>= 3.7)
 - An [appropriate version of Java](https://spark.apache.org/docs/latest/) for your version of `python` and `pyspark`
 
 The current version of this repo has only been tested locally on python 3.9 and java openjdk-11.
-
 
 ## Installation
 
@@ -55,6 +62,7 @@ mv dataperf-vision-selection-resources/test_sets/* dataperf-vision-selection/dat
 ```
 
 The resulting filesystem in the repo should look as follows
+
 ```
 |____data
 | |____embeddings
@@ -96,11 +104,45 @@ Either test will run the offline evaluation using the setup specified in `task_s
 
 The generated scores in this new results file should be identical to those in `data/results_for_random_500.json`.
 
+# MLCube execution
+
+The [MLCube](https://github.com/mlcommons/mlcube) implementation allows us to execute the project using the following steps.
+
+## Project setup
+
+```bash
+# Create Python environment and install MLCube Docker runner 
+virtualenv -p python3 ./env && source ./env/bin/activate && pip install mlcube-docker
+
+# Fetch the vision selection repo
+git clone https://github.com/CoactiveAI/dataperf-vision-selection && cd ./dataperf-vision-selection
+```
+
+## Tasks execution
+
+```bash
+# Download and extract dataset
+mlcube run --task=download -Pdocker.build_strategy=always
+
+# Run evaluation
+mlcube run --task=evaluate -Pdocker.build_strategy=always
+```
+
+## Execute complete pipeline
+
+```bash
+# Run all steps
+mlcube run --task=download,evaluate -Pdocker.build_strategy=always
+```
+
 # Guidelines (alpha version)
+
 For the alpha version of this benchmark we will only support submissions and offline evaluation for the open division.
 
 ## Open Division: Creating a submission
+
 A valid submission for the open division includes the following:
+
 - A description of the data selection algorithm/strategy used
 - A training set for each classification task as specified below
 - (Optional) A script of the algorithm/strategy used
@@ -108,6 +150,7 @@ A valid submission for the open division includes the following:
 Each training set file must be a .csv file containing two columns: `ImageID` (the unique identifier for the image) and `Confidence` (the binary label, either a `0` or `1`). The `ImageID`s in the training set files must be limited to the provided candidate pool of training images (i.e. `ImageID`s in the downloaded embeddings file).
 
 The included training set file serves as a template of a single training set:
+
 ```
 cat dataperf-vision-selection/data/train_sets/random_500.csv
 
@@ -124,12 +167,14 @@ ImageID,Confidence
 ## Open Division: Offline evaluation of a submission
 
 The configuration for the offline evaluation is specified in `task_setup.yaml` file. For simplicity, the repo comes pre-configured such that for offline evaluation you can simply:
+
 1. Copy your training sets to the template filesystem
 2. Modify the config file to specify the training set for each task
 3. Run offline evaluation
 4. See results in stdout and results file in `data/results/`
 
 For example
+
 ```
 # 1. Copy training sets for each task
 cd dataperf-vision-selection
@@ -173,9 +218,10 @@ cat data/results/result_UTC-2022-03-31-20-19-24.json
 }       
 ```
 
-Though we recommend working as described above, you can specify a custom task setup .yaml file and/or data folder if needed. 
+Though we recommend working as described above, you can specify a custom task setup .yaml file and/or data folder if needed.
 
 For the containerized offline evaluation, modify the following files and run as follows
+
 ```
 # docker-compose.yaml: modify the volume source
     volumes:
@@ -191,6 +237,7 @@ docker-compose up --build --force-recreate
 ```
 
 For the local python offline evaluation, modify the following files and run as follows
+
 ```
 # path/to/your/custom_task_setup.yaml: modify data_dir
 data_dir: 'path/to/your/data/folder'
@@ -201,10 +248,10 @@ python3 main.py --setup_yaml_path 'path/to/your/custom_task_setup.yaml'
 
 *Note: when specifying a data folder, ensure all relative paths in the task setup .yaml file are valid*
 
-
 ## Closed Division: Creating a submission
+
 TBD.
 
-
 ## Closed Division: Offline evaluation of a submission
+
 TBD.
