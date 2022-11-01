@@ -48,7 +48,7 @@ def create_dataset(embeddings):
     Creates an sklearn-compatible dataset from an embedding dict
     """
     target_to_classid = {
-        target: ix + 1 for ix, target in enumerate(embeddings["targets"].keys())
+        target: ix + 1 for ix, target in enumerate(sorted(embeddings["targets"].keys()))
     }
     target_to_classid["nontarget"] = 0
 
@@ -129,7 +129,7 @@ def main(
     pred_y = clf.predict(eval_x)
 
     print("Score: ", balanced_accuracy_score(eval_y, pred_y))
-    
+
 
 if __name__ == "__main__":
     fire.Fire(main)

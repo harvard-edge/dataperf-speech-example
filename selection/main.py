@@ -96,7 +96,7 @@ def main(
             dict(targets=train.targets, nontargets=train.nontargets),
             fh,
             default_flow_style=None,
-            sort_keys=False,
+            sort_keys=True,
         )
 
 
