@@ -29,11 +29,18 @@ class BaselineSelection(TrainingSetSelection):
 
         target_to_classid = {
             target: ix + 1
-            for ix, target in enumerate(self.embeddings["targets"].keys())
+            for ix, target in enumerate(sorted(self.embeddings["targets"].keys()))
         }
         target_to_classid["nontarget"] = 0
 
-        per_class_size = self.train_set_size // len(target_to_classid.keys())
+        # what fraction of total samples should be targets (vs nontargets)
+        target_frac = 0.6 
+        num_targets = int(self.train_set_size * target_frac)
+        per_target_class_size = num_targets // (len(target_to_classid.keys()) - 1)
+        nontarget_class_size = int(self.train_set_size * (1 - target_frac))
+        print(f"num_targets: {num_targets}")
+        print(f"per_target_class_size: {per_target_class_size}")
+        print(f"nontarget_class_size: {nontarget_class_size}")
 
         target_samples = np.array(
             [
@@ -62,7 +69,6 @@ class BaselineSelection(TrainingSetSelection):
         )
         nontarget_labels = np.zeros(nontarget_samples.shape[0])
 
-        
         # as a simple, coarse baseline, we perform a nested crossvalidation
         # where the outer loop selects different subsets of the target samples
         # and the inner loop selects different subsets of the nontarget samples,
@@ -83,9 +89,7 @@ class BaselineSelection(TrainingSetSelection):
         # the number of samples of "job" than "restaurant"
         # - this might or might not be what you want!
         crossfold_targets = sklearn.model_selection.StratifiedShuffleSplit(
-            n_splits=n_folds,
-            train_size=per_class_size * len(self.embeddings["targets"].keys()),
-            random_state=self.random_seed,
+            n_splits=n_folds, train_size=num_targets, random_state=self.random_seed,
         )
 
         for target_train_ixs, target_val_ixs in tqdm.tqdm(
@@ -96,7 +100,7 @@ class BaselineSelection(TrainingSetSelection):
 
             crossfold_nontargets = sklearn.model_selection.StratifiedShuffleSplit(
                 n_splits=n_folds,
-                train_size=per_class_size,
+                train_size=nontarget_class_size,
                 random_state=self.random_seed,
             )
             for nontarget_train_ixs, nontarget_val_ixs in crossfold_nontargets.split(
@@ -144,7 +148,7 @@ class BaselineSelection(TrainingSetSelection):
                     best_target_train_ixs = target_train_ixs
                     best_nontarget_train_ixs = nontarget_train_ixs
 
-        print(f"{best_score=}")
+        print(f"final {best_score=}")
 
         selected_targets = {k: [] for k in self.embeddings["targets"].keys()}
         for target_ix in best_target_train_ixs:
