@@ -25,15 +25,13 @@ class TrainingSetSelection:
 
             config: see dataperf_speech_config.yaml
 
-            train_set_size: int (total number of samples to select)
-
             audio_flag: bool (if audio is included in the allowed_embeddings)
-
         """
         self.embeddings = allowed_embeddings
         # {"targets": {"dog":[{'ID':string,'feature_vector':np.array,'audio':np.array}, ...], ...},
         #  "nontargets": [{'ID':string,'feature_vector':np.array,'audio':np.array}, ...]}
         self.config = config
+        # the maximum number of samples allowed for the coreset selection algorithm to return
         self.train_set_size = config["train_set_size_limit"]
         self.random_seed = config["random_seed"]
         self.audio_flag = audio_flag
