@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Any
 from dataclasses import dataclass
 
 # include additional dependencies as needed
@@ -14,19 +14,25 @@ class TrainingSet:
 
 
 class TrainingSetSelection:
-    def __init__(self, allowed_embeddings, config, audio_flag=False) -> None:
+    def __init__(
+        self,
+        allowed_embeddings: Dict[str, Any],
+        config: Dict[str, Any],
+        audio_flag: bool = False,
+    ) -> None:
         """
         Args:
             allowed_embeddings: dict {"targets": {"dog":[{'ID':string,'feature_vector':np.array,'audio':np.array}, ...], ...}, "nontargets": [list]}
 
-            train_set_size: int (total number of samples to select)
+            config: see dataperf_speech_config.yaml
 
             audio_flag: bool (if audio is included in the allowed_embeddings)
-
         """
         self.embeddings = allowed_embeddings
         # {"targets": {"dog":[{'ID':string,'feature_vector':np.array,'audio':np.array}, ...], ...},
         #  "nontargets": [{'ID':string,'feature_vector':np.array,'audio':np.array}, ...]}
+        self.config = config
+        # the maximum number of samples allowed for the coreset selection algorithm to return
         self.train_set_size = config["train_set_size_limit"]
         self.random_seed = config["random_seed"]
         self.audio_flag = audio_flag
