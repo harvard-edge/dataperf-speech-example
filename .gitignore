@@ -1,4 +1,7 @@
 workdir/
+workspace/*
+!workspace/parameters.yaml
+!workspace/dataperf_speech_config.yaml
 .vscode
 # Byte-compiled / optimized / DLL files
 __pycache__/
