@@ -26,6 +26,7 @@ tasks:
     parameters:
       inputs:
         {
+          config_file: { type: file, default: dataperf_speech_config.yaml },
           allowed_training_set: { type: file, default: data/preliminary_evaluation_dataset/allowed_training_set.yaml },
           train_embeddings_dir: data/preliminary_evaluation_dataset/train_embeddings/,
         }
