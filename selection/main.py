@@ -16,8 +16,8 @@ def main(
     allowed_training_set: os.PathLike,
     train_embeddings_dir: os.PathLike = "/embeddings/en",
     audio_dir: Optional[os.PathLike] = None,
-    config_file: os.PathLike = "config_files/dataperf_speech_config.yaml",
-    outdir: os.PathLike = "/workdir",
+    config_file: os.PathLike = "workspace/dataperf_speech_config.yaml",
+    outdir: os.PathLike = "/workspace",
 ):
     """
     Entrypoint for the training set selection algorithm. Challenge participants

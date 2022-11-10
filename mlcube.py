@@ -25,9 +25,10 @@ class SelectTask:
     """Execute selection algorithm"""
 
     @staticmethod
-    def run(allowed_training_set: str, train_embeddings_dir: str, outdir: str) -> None:
+    def run(config_file: str, allowed_training_set: str, train_embeddings_dir: str, outdir: str) -> None:
 
         cmd = "python3 -m selection.main"
+        cmd += f" --config_file {config_file}"
         cmd += f" --allowed_training_set {allowed_training_set}"
         cmd += f" --train_embeddings_dir {train_embeddings_dir}"
         cmd += f" --outdir {outdir}"
@@ -68,11 +69,12 @@ def download(
 
 @app.command("select")
 def select(
+    config_file: str = typer.Option(..., "--config_file"),
     allowed_training_set: str = typer.Option(..., "--allowed_training_set"),
     train_embeddings_dir: str = typer.Option(..., "--train_embeddings_dir"),
     outdir: str = typer.Option(..., "--outdir"),
 ):
-    SelectTask.run(allowed_training_set, train_embeddings_dir, outdir)
+    SelectTask.run(config_file, allowed_training_set, train_embeddings_dir, outdir)
 
 
 @app.command("evaluate")
