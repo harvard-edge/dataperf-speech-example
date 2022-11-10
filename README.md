@@ -1,11 +1,46 @@
 # Dataperf-Selection-Speech Alpha
 Dataperf-Selection-Speech is a benchmark that measures the performance of dataset selection algorithms. The model training component is frozen and participants can only improve the accuracy by selecting the best trainging set. The benchmark is intended to encompass the tasks of dataset cleaning and coreset selection for a keyword spotting application.
 
-The basic workflow:
+Component Ownership Diagram:
 
 ![Simple workflow](https://docs.google.com/drawings/d/e/2PACX-1vSlVN0uRWKySxu2ghuRhori-YxnQG859kg7zxan9xKXwarb1lQkRw9qVlnsOGEDqeVImxIplBvPDe5O/pub?w=635&h=416)
 
-### Files
+## MLCube Workflow
+Participants are encuraged to use the [MLCube](https://github.com/mlcommons/mlcube) workflow to simplify development on the users machine and increase reproducability. 
+
+To run the baseline selection algorithm:
+
+Create Python environment and install MLCube Docker runner:
+```bash 
+virtualenv -p python3 ./env && source ./env/bin/activate && pip install mlcube-docker
+```
+
+Run download task (only required once):
+```bash 
+mlcube run --task=download -Pdocker.build_strategy=always
+```
+
+Run selection:
+```bash 
+mlcube run --task=select -Pdocker.build_strategy=always
+```
+
+Run offline evaluation:
+```bash 
+mlcube run --task=evaluate -Pdocker.build_strategy=always
+```
+
+### Algorithm Development
+To develop their own selection algorithm, participants should:
+- Duplicate and rename `random_selection.py` in `selection/implementations`
+- Modify `Select()` in your new implementation file to your selection algorithm
+- Change `selection_algorithm_module` and `selection_algorithm_class` in `workspace/dataperf_speech_config.yaml` to match the name of your selection implementation
+- Run and evaluate your selection algorithm with the MLCube commands above
+
+### Submission
+Once Beta participants are satisfied with their selection algorithm they should submit their `train.yaml` file to [DynaBench](https://dynabench.org/tasks/speech-selection).
+
+## Files
 
 * `train_vectors` : The directory that contains the embedding vectors that can be selected for training. The file structure follows the pattern `train_vectors/en/left.parquet`. Each parquet file contains a "clip_id" column and a "mswc_embedding_vector" column.
 
@@ -24,108 +59,54 @@ The basic workflow:
 
 * `train_audio` : The directory of wav files that can optionally be used in the selection algorithm.
 
-On the evaluation server, we will have distinct, hidden versions of files using different keywords in different languages, in order to calculate the official score for our leaderboard. This ensures the submitted selection algoithm can generalize to other words and languages. We encurage participants to test out other target words to ensure their solution generalizes. **[TODO: provide link to scoring function]**
 
-#### File Diagram
-![File Diagram](https://docs.google.com/drawings/d/e/2PACX-1vS2OAQYU6T4E2FB0lvkW3kf4nGLfbVNAjQm0wXA0XwSy6g9hDOH8BivPg9GW4NdSIDvFRhhg-LtyE2H/pub?w=960&h=720)
+## Running Selection/Eval Directly
 
-### Developing a custom training set selection algorithm
+You can run the selection and eval files directly, without needing MLCube
 
-Edit the function `select()` in `selection/selection.py` to include your custom training set selection algorithm. 
+If your code has additional dependencies, make sure to edit `requirements.txt` and/or the `Dockerfile` to include these.
 
-If your code has additional dependencies, make sure to edit `requirements.txt` and/or the `Dockerfile` to include these.  Please make sure not to change the behavior of `selection/main.py` or the docker entrypoint (this is how we automate evaluation on the server).
-
-You can run your selection algorithm locally (outside of docker) with the following command:
+You can run your selection algorithm locally (outside of docker/MLCube) with the following command:
 
 ```
 python -m selection.main \
-  --allowed_training_set ../experiment/allowed_training_set.yaml \
-  --train_embeddings_dir ../experiment/train_embeddings/ \
-  --outdir ../experiment/
+  --allowed_training_set workspace/allowed_training_set.yaml \
+  --train_embeddings_dir workspace/train_embeddings/ \
+  --outdir workspace/
 ```
 
-This will write out `train.yaml` into the directory specified by `--outdir` (which can be the same `experiment/` directory).
+This will write out `train.yaml` into the directory specified by `--outdir` (which can be the same `workspace/` directory).
 
 To evaluate your training set run:
 
 ```
 python eval.py \
-  --eval_embeddings_dir ../experiment/eval_embeddings/ \
-  --train_embeddings_dir ../experiment/train_embeddings/ \
-  --allowed_training_set ../experiment/allowed_training_set.yaml \
-  --eval_file ../experiment/eval.yaml \
-  --train_file ../experiment/train.yaml \
-  --config_file config_files/dataperf_speech_config.yaml
+  --eval_embeddings_dir workspace/eval_embeddings/ \
+  --train_embeddings_dir workspace/train_embeddings/ \
+  --allowed_training_set workspace/allowed_training_set.yaml \
+  --eval_file workspace/eval.yaml \
+  --train_file workspace/train.yaml \
+  --config_file workspace/dataperf_speech_config.yaml
 
 ```
 
-### Generating new experiments for development and testing
-
-The following script can generate new experiments with custom words:
-
-```
-mkdir ../new_experiment
-python create_experiment.py \
-  --path_to_metadata /path/to/metadata.json.gz \
-  --language_isocode en \
-  --path_to_splits_csv /path/to/en_splits.csv \
-  --path_to_embeddings /path/to/embeddings/en/ \
-  --target_words weather,date,time,schedule,reminder \
-  --outdir ../new_experiment
-
-```
 
 MSWC metadata is [available here](https://storage.googleapis.com/public-datasets-mswc/metadata.json.gz)
 
 MSWC train/dev/test splits can be downloaded at <https://mlcommons.org/words>. For example, English splits are [available here](https://storage.googleapis.com/public-datasets-mswc/splits/en.tar.gz)
 
-MSWC embeddings can be downloaded here: **TBD: public link coming soon, currently available to alpha participants**
+MSWC embeddings can be downloaded here: `https://drive.google.com/file/d/1Lj1l7-FxipKF6ZtVpy7nSRMEWMD2yfCd/view`
 
-### Creating a submission
 
-Once you have implemented your selection algorithm, build a new version of your submission container:
+### Using .wav Files for Selection
 
-```
-docker build -t dataperf-speech-submission:latest .
-```
-
-Test your submission container before submitting to the evaluation server. To do so, first create a working directory the output of the selection script
-
-```
-mkdir workdir
-```
-
-Then run your selection algorithm within the docker container:
-
-```
-docker run --rm  -u $(id -u):$(id -g) --network none -v $(pwd)/config_files:/config_files -v $(pwd)/workdir:/workdir -v $(path to embeddings):/embeddings -it dataperf-speech-submission:latest
-```
-
-There are several flags to note:
-
-* `-u $(id -u):$(id -g)`: These flags are used so that the selection yaml (`train.yaml`) is written to disk as the user instead of as root 
-* `-v $(pwd)/workdir:/workdir -v $(pwd)/embeddings:/embeddings`: these are a [mounted volumes](https://docs.docker.com/storage/volumes/), specifying the working directory used for the train.yaml output and the directory of the training vectors dataset.
-* `--network none`: your submission docker container will not have network access during evaluation on the server. This is to prevent exposing our hidden evaluation keyword. 
-
-Finally, test out the evaluation script on your selection algorithm's output (we will use the same `eval.py` script on the server, but with a different hidden `samples.pb` and `eval.pb` dataset)
-
-```
-python eval.py --eval_file=eval.yaml --train_file=workdir/train.yaml
-```
-
-#### Using .wav Files for Selection
-
-To use the raw audio in selection.py in addition to the embedding vectors:
+To use the raw audio in selection in addition to the embedding vectors:
 
 * Download [the .wav version of the MSWC dataset](TODO).
 * Pass the MSWC audio directory to selection:main as the `audio_dir` argument.
-* Access the raw audio of a sample in selection.py with the `['audio']` label
+* Access the raw audio of a sample in a selection implementation with the `['audio']` label
 
-### Submitting to the evaluation server
-**Submission instructions will be shared directly with participants during the Alpha**
-
-
-### Glossary
+## Glossary
 
 * Keyword spotting model (KWS model): Also referred to as a wakeword, hotword, or voice trigger detection model, this is a small ML speech model that is designed to recognize a small vocabulary of spoken words or phrases (e.g., Siri, Google Voice Assistant, Alexa)
 * Target sample: An example 1-second audio clip of a keyword used to train or evaluate a keyword-spotting model
