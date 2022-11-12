@@ -38,7 +38,7 @@ To develop their own selection algorithm, participants should:
 - Run and evaluate your selection algorithm with the MLCube commands above
 
 ### Submission
-Once Beta participants are satisfied with their selection algorithm they should submit their `train.yaml` file to [DynaBench](https://dynabench.org/tasks/speech-selection).
+Once Beta participants are satisfied with their selection algorithm they should submit their `train.json` file to [DynaBench](https://dynabench.org/tasks/speech-selection).
 
 ## Files
 
@@ -49,7 +49,7 @@ Once Beta participants are satisfied with their selection algorithm they should 
 * `allowed_train_set.yaml` : A file that specifies which sample IDs are valid training samples. The file contrains the following structure `{"targets": {"left":[list]}, "nontargets": [list]}`
 
 * `eval.yaml` : The evaluation set for eval.py. It follows the same structure as `allowed_train_set.yaml`.
-* `train.yaml` : The file produced by `selection:main` that specifies the training set for eval.py.  It follows the same structure as `allowed_train_set.yaml`
+* `train.json` : The file produced by `selection:main` that specifies the training set for eval.py.  It follows the same structure as `allowed_train_set.yaml`
 
 * `dataperf_speech_config.yaml` : This file contains the configuration for the dataperf-speech-example workflow.
 
