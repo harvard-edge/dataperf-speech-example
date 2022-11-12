@@ -41,7 +41,7 @@ tasks:
           train_embeddings_dir: data/preliminary_evaluation_dataset/train_embeddings/,
           allowed_training_set: { type: file, default: data/preliminary_evaluation_dataset/allowed_training_set.yaml },
           eval_file: { type: file, default: data/preliminary_evaluation_dataset/eval.yaml },
-          train_file: { type: file, default: select_output/train.yaml },
+          train_file: { type: file, default: select_output/train.json },
           config_file: { type: file, default: dataperf_speech_config.yaml },
         }
       outputs: { log_path: { type: file, default: log.txt } }

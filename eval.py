@@ -8,6 +8,7 @@ import sklearn.linear_model
 import sklearn.svm
 import tqdm
 import yaml
+import json
 
 from selection.load_samples import load_samples
 
@@ -83,7 +84,7 @@ def main(
     train_embeddings_dir="embeddings/en",
     allowed_training_set="allowed_training_set.yaml",
     eval_file="eval.yaml",
-    train_file="workdir/train.yaml",
+    train_file="workdir/train.json",
     config_file="dataperf_speech_config.yaml",
 ):
 
@@ -92,7 +93,7 @@ def main(
     random_seed = config["random_seed"]
 
     allowed_training_ids = yaml.safe_load(Path(allowed_training_set).read_text())
-    selected_ids = yaml.safe_load(Path(train_file).read_text())
+    selected_ids = json.loads(Path(train_file).read_text())
 
     print("validating selected IDs")
     validate_selected_ids(selected_ids, allowed_training_ids, train_set_size_limit)
