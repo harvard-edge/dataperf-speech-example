@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 import fire
 import yaml
+import json
 import pandas as pd
 import numpy as np
 import tqdm
@@ -90,14 +91,14 @@ def main(
         n_selected <= config["train_set_size_limit"]
     ), f"{n_selected} samples selected, but the limit is {config['train_set_size_limit']}"
 
-    output = Path(outdir) / "train.yaml"
-    with open(output, "w") as fh:
-        yaml.dump(
+    output = Path(outdir) / "train.json"
+    output.write_text(
+        json.dumps(
             dict(targets=train.targets, nontargets=train.nontargets),
-            fh,
-            default_flow_style=None,
             sort_keys=True,
+            indent=4,
         )
+    )
 
 
 if __name__ == "__main__":
