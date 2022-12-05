@@ -1,12 +1,14 @@
 # Dataperf-Selection-Speech Alpha
-Dataperf-Selection-Speech is a benchmark that measures the performance of dataset selection algorithms. The model training component is frozen and participants can only improve the accuracy by selecting the best trainging set. The benchmark is intended to encompass the tasks of dataset cleaning and coreset selection for a keyword spotting application.
+Dataperf-Selection-Speech is a benchmark that measures the performance of dataset selection algorithms. The model training component is frozen and participants can only improve the accuracy by selecting the best training set. The benchmark is intended to encompass the tasks of dataset cleaning and coreset selection for a keyword spotting application.
+
+More specifically, you are given a classification training dataset and your goal is to produce an algorithm that selects a subset of *M* examples from this dataset (*M* is specified as the `train_set_size_limit` in **dataperf_speech_config.yaml**). Evaluation proceeds by subsequently training a fixed model (`sklearn.ensemble.VotingClassifier` with various constituent classifiers) on your chosen subset, and then scoring the model's predictions on fixed test data via the `sklearn.metrics.balanced_accuracy_score` metric.
 
 Component Ownership Diagram:
 
 ![Simple workflow](https://docs.google.com/drawings/d/e/2PACX-1vSlVN0uRWKySxu2ghuRhori-YxnQG859kg7zxan9xKXwarb1lQkRw9qVlnsOGEDqeVImxIplBvPDe5O/pub?w=635&h=416)
 
 ## MLCube Workflow
-Participants are encuraged to use the [MLCube](https://github.com/mlcommons/mlcube) workflow to simplify development on the users machine and increase reproducability. 
+Participants are encuraged to use the [MLCube](https://github.com/mlcommons/mlcube) workflow to simplify development on the users machine and increase reproducibility.
 
 To run the baseline selection algorithm:
 
