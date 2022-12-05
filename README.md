@@ -32,6 +32,8 @@ Run offline evaluation:
 mlcube run --task=evaluate -Pdocker.build_strategy=always
 ```
 
+MLCube is optional, you can download the data as described further below, you will need to download the [MSWC metadata](https://storage.googleapis.com/public-datasets-mswc/metadata.json.gz) and the [MSWC embeddings](https://drive.google.com/file/d/1Lj1l7-FxipKF6ZtVpy7nSRMEWMD2yfCd/view).
+
 ### Algorithm Development
 To develop their own selection algorithm, participants should:
 - Duplicate and rename `random_selection.py` in `selection/implementations`
