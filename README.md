@@ -79,7 +79,7 @@ python -m selection.main \
   --outdir workspace/
 ```
 
-This will write out `train.yaml` into the directory specified by `--outdir` (which can be the same `workspace/` directory).
+This will write out `train.json` into the directory specified by `--outdir` (which can be the same `workspace/` directory).
 
 To evaluate your training set run:
 
@@ -89,7 +89,7 @@ python eval.py \
   --train_embeddings_dir workspace/train_embeddings/ \
   --allowed_training_set workspace/allowed_training_set.yaml \
   --eval_file workspace/eval.yaml \
-  --train_file workspace/train.yaml \
+  --train_file workspace/train.json \
   --config_file workspace/dataperf_speech_config.yaml
 
 ```
