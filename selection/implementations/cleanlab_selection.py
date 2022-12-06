@@ -134,7 +134,7 @@ class CleanlabSelection(TrainingSetSelection):
         # print(best_indices)
         # unique, counts = np.unique(og_ys[best_indices], return_counts=True)
         # print(np.asarray((unique, counts)).T)
-        print(len(best_indices))
+        # print(len(best_indices))
 
         # Extract indices:
         best_target_train_ixs = [x for x in best_indices if x < len(target_samples)]
