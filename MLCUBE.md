@@ -30,7 +30,7 @@ This repository contains a number of MLCube examples that can run in different e
 
 ## Installation
 
-### Install MLCube Docker runner¶
+### Install MLCube Docker runner
 
 pip install mlcube-docker # Install. mlcube config --get runners # Check it was installed. mlcube config --list # Show system settings for local MLCube runners. Depending on how your local system is configured, it may be required to change the following settings: - platforms.docker.docker (string): A docker executable. Examples are docker, nvidia-docker, sudo docker, podman etc. - platforms.docker.env_args (dictionary) and platforms.docker.build_args (dictionary). Environmental variables for docker run and build phases. Http and https proxy settings can be configured here. A custom configuration could look like: yaml platforms: docker: docker: sudo docker env_args: http_proxy: http://proxy.company.com:8088 https_proxy: https://proxy.company.com.net:8088 build_args: http_proxy: http://proxy.company.com:8088 https_proxy: https://proxy.company.com:8088
 
