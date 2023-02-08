@@ -28,6 +28,7 @@ class SelectTask:
     def run(config_file: str, allowed_training_set: str, train_embeddings_dir: str, outdir: str) -> None:
 
         cmd = "python3 -m selection.main"
+        cmd += f" --language en"
         cmd += f" --config_file {config_file}"
         cmd += f" --allowed_training_set {allowed_training_set}"
         cmd += f" --train_embeddings_dir {train_embeddings_dir}"
@@ -42,10 +43,11 @@ class EvaluateTask:
     """Execute evaluation script"""
 
     @staticmethod
-    def run(eval_embeddings_dir: str, train_embeddings_dir: str, allowed_training_set: str, eval_file: str, train_file: str, config_file: str, log_path: str) -> None:
+    def run( eval_embeddings_dir: str, train_embeddings_dir: str, allowed_training_set: str, eval_file: str, train_file: str, config_file: str, log_path: str) -> None:
 
         env = os.environ.copy()
         env.update({
+            'language': 'en',
             'eval_embeddings_dir': eval_embeddings_dir,
             'train_embeddings_dir': train_embeddings_dir,
             'allowed_training_set': allowed_training_set,

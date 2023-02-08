@@ -27,8 +27,8 @@ tasks:
       inputs:
         {
           config_file: { type: file, default: dataperf_speech_config.yaml },
-          allowed_training_set: { type: file, default: data/preliminary_evaluation_dataset/allowed_training_set.yaml },
-          train_embeddings_dir: data/preliminary_evaluation_dataset/train_embeddings/,
+          allowed_training_set: { type: file, default: data/dataperf_en_data/allowed_training_set.yaml },
+          train_embeddings_dir: data/dataperf_en_data/train_embeddings/,
         }
       outputs: { outdir: select_output/ }
 
@@ -37,11 +37,11 @@ tasks:
     parameters:
       inputs:
         {
-          eval_embeddings_dir: data/preliminary_evaluation_dataset/eval_embeddings/,
-          train_embeddings_dir: data/preliminary_evaluation_dataset/train_embeddings/,
-          allowed_training_set: { type: file, default: data/preliminary_evaluation_dataset/allowed_training_set.yaml },
-          eval_file: { type: file, default: data/preliminary_evaluation_dataset/eval.yaml },
-          train_file: { type: file, default: select_output/train.json },
+          eval_embeddings_dir: data/dataperf_en_data/eval_embeddings/,
+          train_embeddings_dir: data/dataperf_en_data/train_embeddings/,
+          allowed_training_set: { type: file, default: data/dataperf_en_data/allowed_training_set.yaml },
+          eval_file: { type: file, default: data/dataperf_en_data/eval.yaml },
+          train_file: { type: file, default: select_output/en_train.json },
           config_file: { type: file, default: dataperf_speech_config.yaml },
         }
       outputs: { log_path: { type: file, default: log.txt } }

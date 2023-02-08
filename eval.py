@@ -80,13 +80,32 @@ def create_dataset(embeddings):
 
 
 def main(
-    eval_embeddings_dir="embeddings/en",  # embeddings dir point to the same parquet file for testing and online eval
-    train_embeddings_dir="embeddings/en",
-    allowed_training_set="allowed_training_set.yaml",
-    eval_file="eval.yaml",
-    train_file="workdir/train.json",
-    config_file="dataperf_speech_config.yaml",
+    language,
+    eval_embeddings_dir=None,  # embeddings dir point to the same parquet file for testing and online eval
+    train_embeddings_dir=None,
+    allowed_training_set=None,
+    eval_file=None,
+    train_file=None,
+    config_file="workspace/dataperf_speech_config.yaml",
 ):
+
+    if language not in ['en', 'id', 'pt']:
+        raise ValueError(f"language {language} not supported. Supported languages are: en, id, pt")
+
+    if eval_embeddings_dir is None:
+        eval_embeddings_dir = f"workspace/data/dataperf_{language}_data/eval_embeddings"
+
+    if train_embeddings_dir is None:
+        train_embeddings_dir = f"workspace/data/dataperf_{language}_data/train_embeddings"
+
+    if allowed_training_set is None:
+        allowed_training_set = f"workspace/data/dataperf_{language}_data/allowed_training_set.yaml"
+
+    if eval_file is None:
+        eval_file = f"workspace/data/dataperf_{language}_data/eval.yaml"
+
+    if train_file is None:
+        train_file = f"workspace/{language}_train.json"
 
     config = yaml.safe_load(Path(config_file).read_text())
     train_set_size_limit = config["train_set_size_limit"]

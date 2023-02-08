@@ -1,6 +1,7 @@
 #!/bin/bash
 
 python eval.py \
+  --language ${language} \
   --eval_embeddings_dir ${eval_embeddings_dir} \
   --train_embeddings_dir ${train_embeddings_dir} \
   --allowed_training_set ${allowed_training_set} \

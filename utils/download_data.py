@@ -5,25 +5,19 @@ import yaml
 import wget
 import gdown
 import tarfile
-import zipfile
 
 
-def download_file(url, folder_path, extract=False, g_drive=False):
+def download_file(url, folder_path, file_name=None, extract=False, g_drive=False):
     """Download file from internet"""
-    if url:
-        if g_drive:
-            file_name = "preliminary_evaluation_dataset.zip"
-            output_path = os.path.join(folder_path, file_name)
-            gdown.download(url, output_path, quiet=False, fuzzy=True)
-            if extract:
-                with zipfile.ZipFile(output_path, 'r') as zip_ref:
-                    zip_ref.extractall(folder_path)
-        else:
-            output_path = wget.download(url, out=folder_path)
-            if extract:
-                tar = tarfile.open(output_path, "r:gz")
-                tar.extractall(folder_path)
-                tar.close()
+    if g_drive:
+        output_path = os.path.join(folder_path, file_name)
+        gdown.download(url, output_path, quiet=False, fuzzy=True)
+    else:
+        output_path = wget.download(url, out=folder_path)
+    if extract:
+        tar = tarfile.open(output_path, "r:gz")
+        tar.extractall(folder_path)
+        tar.close()
 
 
 def main():
@@ -49,9 +43,15 @@ def main():
         download_file(params["dataset_url"], output_path, extract=True)
     if "metadata_url" in params:
         download_file(params["metadata_url"], output_path)
-    if "embeddings_url" in params:
-        download_file(params["embeddings_url"], output_path, extract=True, g_drive=True)
-
+    if "en_embeddings_url" in params:
+        download_file(params["en_embeddings_url"], output_path, 
+            file_name="dataperf_en_data.tar.gz", extract=True, g_drive=True)
+    if "id_embeddings_url" in params:
+        download_file(params["id_embeddings_url"], output_path, 
+            file_name="dataperf_id_data.tar.gz", extract=True, g_drive=True)
+    if "pt_embeddings_url" in params:
+        download_file(params["pt_embeddings_url"], output_path, 
+            file_name="dataperf_pt_data.tar.gz", extract=True, g_drive=True)
 
 if __name__ == "__main__":
     main()
