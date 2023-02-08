@@ -14,7 +14,7 @@ from selection.selection import TrainingSetSelection
 
 
 def main(
-    language: str = "en",
+    language: str,
     allowed_training_set: os.PathLike = None,
     train_embeddings_dir: os.PathLike = None,
     audio_dir: Optional[os.PathLike] = None,
@@ -27,7 +27,8 @@ def main(
     additional modules and dependencies is also fine, but the selection algorithm
     should be able to run offline without network access).
 
-    :param language: language of the training set selection, either "en", "id", or "pt"
+    :param language: language of the training set selection, either "en" (English),
+      "id" (Indonesian), or "pt" (Portuguese)
 
     :param allowed_training_set: path to a yaml file containing the allowed clip
       IDs for training set selection, organized as a dictionary of potential target
@@ -48,6 +49,8 @@ def main(
     :param outdir: output directory to save the selected training set as a yaml file
 
     """
+    if language not in ['en', 'id', 'pt']:
+        raise ValueError(f"language {language} not supported. Supported languages are: en, id, pt")
 
     if train_embeddings_dir is None:
         train_embeddings_dir = f"workspace/data/dataperf_{language}_data/train_embeddings"

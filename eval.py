@@ -80,7 +80,7 @@ def create_dataset(embeddings):
 
 
 def main(
-    language="en",
+    language,
     eval_embeddings_dir=None,  # embeddings dir point to the same parquet file for testing and online eval
     train_embeddings_dir=None,
     allowed_training_set=None,
@@ -88,6 +88,9 @@ def main(
     train_file=None,
     config_file="workspace/dataperf_speech_config.yaml",
 ):
+
+    if language not in ['en', 'id', 'pt']:
+        raise ValueError(f"language {language} not supported. Supported languages are: en, id, pt")
 
     if eval_embeddings_dir is None:
         eval_embeddings_dir = f"workspace/data/dataperf_{language}_data/eval_embeddings"
