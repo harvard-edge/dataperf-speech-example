@@ -5,8 +5,78 @@ Component Ownership Diagram:
 
 ![Simple workflow](https://docs.google.com/drawings/d/e/2PACX-1vSlVN0uRWKySxu2ghuRhori-YxnQG859kg7zxan9xKXwarb1lQkRw9qVlnsOGEDqeVImxIplBvPDe5O/pub?w=635&h=416)
 
-## MLCube Workflow
-Participants are encuraged to use the [MLCube](https://github.com/mlcommons/mlcube) workflow to simplify development on the users machine and increase reproducability. 
+## Downloading The Required Files
+
+```
+python utils/download_data.py --parameters_file workspace/parameters.yaml --output_path workspace/data
+```
+
+This will automatically download and extract the train and eval embeddings for English, Inodnesian, and Portuguese.
+
+## Running Selection/Eval
+Run and evaluate the baseline selection algorithm. The target language can be changed by modifying the `--language` argument (English: 'en', Indonesian: 'ed', Portuguese: 'pt').
+
+
+Run selection:
+
+```
+python -m selection.main --language en
+```
+
+This will write out `en_train.json` into the directory specified by `--outdir` (default is the `workspace/` directory).
+
+Evaluate your training set:
+
+```
+python eval.py --language en
+```
+
+This will output the balanced accuracy of a model trained on the selected training set. The offline evaluation score is unofficial, but useful for development.
+
+### Algorithm Development
+To develop their own selection algorithm, participants should:
+- Duplicate and rename `random_selection.py` in `selection/implementations`
+- Modify `Select ()` in your new implementation file to your selection algorithm
+- Change `selection_algorithm_module` and `selection_algorithm_class` in `workspace/dataperf_speech_config.yaml` to match the name of your selection implementation
+- Run and evaluate your selection algorithm with the MLCube commands above
+
+### Submission
+Once participants are satisfied with their selection algorithm they should submit their `{lang}_train.json` file to [DynaBench](https://dynabench.org/tasks/speech-selection).
+
+## Files
+Each supported language has the following files:
+
+* `train_vectors` : The directory that contains the embedding vectors that can be selected for training. The file structure follows the pattern `train_vectors/en/left.parquet`. Each parquet file contains a "clip_id" column and a "mswc_embedding_vector" column.
+
+* `eval_vectors` : The directory that contains the embedding vectors that are used for evaluation. The structure is identical to `train_vectors`
+
+* `allowed_train_set.yaml` : A file that specifies which sample IDs are valid training samples. The file contrains the following structure `{"targets": {"left":[list]}, "nontargets": [list]}`
+
+* `eval.yaml` : The evaluation set for eval.py. It follows the same structure as `allowed_train_set.yaml`.
+
+* `{lang}_train.json` : The file produced by `selection:main` that specifies the language specific training set for eval.py.
+
+All languages share the following files:
+* `dataperf_speech_config.yaml` : This file contains the configuration for the dataperf-speech-example workflow.
+
+#### Optional Files
+
+* `mswc_vectors` : The unified directory of all embedding vectors. This directory can be used to generate new `train_vectors` and `eval_vectors` directories.
+
+* `train_audio` : The directory of wav files that can optionally be used in the selection algorithm.
+
+
+### Using .wav Files for Selection
+
+To use the raw audio in selection in addition to the embedding vectors:
+
+* Download [the .wav version of the MSWC dataset](TODO).
+* Pass the MSWC audio directory to selection:main as the `audio_dir` argument.
+* Access the raw audio of a sample in a selection implementation with the `['audio']` label
+
+## Optional MLCube Workflow
+
+Participants may use the [MLCube](https://github.com/mlcommons/mlcube) workflow to simplify development on the users machine and increase reproducability. 
 
 To run the baseline selection algorithm:
 
@@ -29,82 +99,6 @@ Run offline evaluation:
 ```bash 
 mlcube run --task=evaluate -Pdocker.build_strategy=always
 ```
-
-### Algorithm Development
-To develop their own selection algorithm, participants should:
-- Duplicate and rename `random_selection.py` in `selection/implementations`
-- Modify `Select()` in your new implementation file to your selection algorithm
-- Change `selection_algorithm_module` and `selection_algorithm_class` in `workspace/dataperf_speech_config.yaml` to match the name of your selection implementation
-- Run and evaluate your selection algorithm with the MLCube commands above
-
-### Submission
-Once Beta participants are satisfied with their selection algorithm they should submit their `train.json` file to [DynaBench](https://dynabench.org/tasks/speech-selection).
-
-## Files
-
-* `train_vectors` : The directory that contains the embedding vectors that can be selected for training. The file structure follows the pattern `train_vectors/en/left.parquet`. Each parquet file contains a "clip_id" column and a "mswc_embedding_vector" column.
-
-* `eval_vectors` : The directory that contains the embedding vectors that are used for evaluation. The structure is identical to `train_vectors`
-
-* `allowed_train_set.yaml` : A file that specifies which sample IDs are valid training samples. The file contrains the following structure `{"targets": {"left":[list]}, "nontargets": [list]}`
-
-* `eval.yaml` : The evaluation set for eval.py. It follows the same structure as `allowed_train_set.yaml`.
-* `train.json` : The file produced by `selection:main` that specifies the training set for eval.py.  It follows the same structure as `allowed_train_set.yaml`
-
-* `dataperf_speech_config.yaml` : This file contains the configuration for the dataperf-speech-example workflow.
-
-#### Optional Files
-
-* `mswc_vectors` : The unified directory of all embedding vectors. This directory can be used to generate new `train_vectors` and `eval_vectors` directories.
-
-* `train_audio` : The directory of wav files that can optionally be used in the selection algorithm.
-
-
-## Running Selection/Eval Directly
-
-You can run the selection and eval files directly, without needing MLCube
-
-If your code has additional dependencies, make sure to edit `requirements.txt` and/or the `Dockerfile` to include these.
-
-You can run your selection algorithm locally (outside of docker/MLCube) with the following command:
-
-```
-python -m selection.main \
-  --allowed_training_set workspace/allowed_training_set.yaml \
-  --train_embeddings_dir workspace/train_embeddings/ \
-  --outdir workspace/
-```
-
-This will write out `train.yaml` into the directory specified by `--outdir` (which can be the same `workspace/` directory).
-
-To evaluate your training set run:
-
-```
-python eval.py \
-  --eval_embeddings_dir workspace/eval_embeddings/ \
-  --train_embeddings_dir workspace/train_embeddings/ \
-  --allowed_training_set workspace/allowed_training_set.yaml \
-  --eval_file workspace/eval.yaml \
-  --train_file workspace/train.yaml \
-  --config_file workspace/dataperf_speech_config.yaml
-
-```
-
-
-MSWC metadata is [available here](https://storage.googleapis.com/public-datasets-mswc/metadata.json.gz)
-
-MSWC train/dev/test splits can be downloaded at <https://mlcommons.org/words>. For example, English splits are [available here](https://storage.googleapis.com/public-datasets-mswc/splits/en.tar.gz)
-
-MSWC embeddings can be downloaded here: `https://drive.google.com/file/d/1Lj1l7-FxipKF6ZtVpy7nSRMEWMD2yfCd/view`
-
-
-### Using .wav Files for Selection
-
-To use the raw audio in selection in addition to the embedding vectors:
-
-* Download [the .wav version of the MSWC dataset](TODO).
-* Pass the MSWC audio directory to selection:main as the `audio_dir` argument.
-* Access the raw audio of a sample in a selection implementation with the `['audio']` label
 
 ## Glossary
 
