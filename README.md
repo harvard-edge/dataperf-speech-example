@@ -1,7 +1,9 @@
 # Dataperf-Selection-Speech Alpha
 Dataperf-Selection-Speech is a benchmark that measures the performance of dataset selection algorithms. The model training component is frozen and participants can only improve the accuracy by selecting the best training set. The benchmark is intended to encompass the tasks of dataset cleaning and coreset selection for a keyword spotting application.
 
-More specifically, you are given a classification training dataset and your goal is to produce an algorithm that selects a subset of *M* examples from this dataset (*M* is specified as the `train_set_size_limit` in **dataperf_speech_config.yaml**). Evaluation proceeds by subsequently training a fixed model (`sklearn.ensemble.VotingClassifier` with various constituent classifiers) on your chosen subset, and then scoring the model's predictions on fixed test data via the `sklearn.metrics.balanced_accuracy_score` metric.
+More specifically, you are given a classification training dataset and your goal is to produce an algorithm that selects a subset of *M* examples from this dataset\*. Evaluation proceeds by subsequently training a fixed model (`sklearn.ensemble.VotingClassifier` with various constituent classifiers) on your chosen subset, and then scoring the model's predictions on fixed test data via the `sklearn.metrics.balanced_accuracy_score` metric.
+
+\* *M* is user defined, but Dynabench will host two leaderboards per language with training size caps of 25 and 60.
 
 Component Ownership Diagram:
 
@@ -16,13 +18,13 @@ python utils/download_data.py --parameters_file workspace/parameters.yaml --outp
 This will automatically download and extract the train and eval embeddings for English, Inodnesian, and Portuguese.
 
 ## Running Selection/Eval
-Run and evaluate the baseline selection algorithm. The target language can be changed by modifying the `--language` argument (English: 'en', Indonesian: 'ed', Portuguese: 'pt').
+Run and evaluate the baseline selection algorithm. The target language can be changed by modifying the `--language` argument (English: 'en', Indonesian: 'ed', Portuguese: 'pt'). The training set size can be changed by modifying the `--train_size` argument (default is 60).
 
 
 Run selection:
 
 ```
-python -m selection.main --language en
+python -m selection.main --language en --train_size 60
 ```
 
 This will write out `en_train.json` into the directory specified by `--outdir` (default is the `workspace/` directory).
@@ -30,10 +32,10 @@ This will write out `en_train.json` into the directory specified by `--outdir` (
 Evaluate your training set:
 
 ```
-python eval.py --language en
+python eval.py --language en --train_size 60
 ```
 
-This will output the balanced accuracy of a model trained on the selected training set. The offline evaluation score is unofficial, but useful for development.
+This will output the balanced accuracy of a model trained on the selected training set. The offline evaluation score is unofficial, but useful for development. Note that the official evaluation will be performed on DynaBench.
 
 ### Algorithm Development
 To develop their own selection algorithm, participants should:
@@ -43,7 +45,8 @@ To develop their own selection algorithm, participants should:
 - Run and evaluate your selection algorithm with the MLCube commands above
 
 ### Submission
-Once participants are satisfied with their selection algorithm they should submit their `{lang}_train.json` file to [DynaBench](https://dynabench.org/tasks/speech-selection).
+Once participants are satisfied with their selection algorithm they should submit their `{lang}_{size}_train.json` files to [DynaBench](https://dynabench.org/tasks/speech-selection).
+A seperate file is required for each language and training set size conbination (6 total).
 
 ## Files
 Each supported language has the following files:
@@ -56,7 +59,7 @@ Each supported language has the following files:
 
 * `eval.yaml` : The evaluation set for eval.py. It follows the same structure as `allowed_train_set.yaml`.
 
-* `{lang}_train.json` : The file produced by `selection:main` that specifies the language specific training set for eval.py.
+* `{lang}_{size}_train.json` : The file produced by `selection:main` that specifies the language specific training set for eval.py.
 
 All languages share the following files:
 * `dataperf_speech_config.yaml` : This file contains the configuration for the dataperf-speech-example workflow.

@@ -81,6 +81,7 @@ def create_dataset(embeddings):
 
 def main(
     language,
+    train_size: int,
     eval_embeddings_dir=None,  # embeddings dir point to the same parquet file for testing and online eval
     train_embeddings_dir=None,
     allowed_training_set=None,
@@ -91,6 +92,13 @@ def main(
 
     if language not in ['en', 'id', 'pt']:
         raise ValueError(f"language {language} not supported. Supported languages are: en, id, pt")
+    
+    dynabench_sizes = [25, 60]
+    if train_size not in dynabench_sizes:
+        print(f"Warning: train_size {train_size} does not match one of the leaderboards on dynabench.\
+                The dynabench leaderboads support train size options: {dynabench_sizes}\
+                You can submit a train set that's smaller than one of the options, but it will \
+                be compared against submissions of size up to and including the leaderboard max size.")
 
     if eval_embeddings_dir is None:
         eval_embeddings_dir = f"workspace/data/dataperf_{language}_data/eval_embeddings"
@@ -105,17 +113,16 @@ def main(
         eval_file = f"workspace/data/dataperf_{language}_data/eval.yaml"
 
     if train_file is None:
-        train_file = f"workspace/{language}_train.json"
+        train_file = f"workspace/{language}_{train_size}_train.json"
 
     config = yaml.safe_load(Path(config_file).read_text())
-    train_set_size_limit = config["train_set_size_limit"]
     random_seed = config["random_seed"]
 
     allowed_training_ids = yaml.safe_load(Path(allowed_training_set).read_text())
     selected_ids = json.loads(Path(train_file).read_text())
 
     print("validating selected IDs")
-    validate_selected_ids(selected_ids, allowed_training_ids, train_set_size_limit)
+    validate_selected_ids(selected_ids, allowed_training_ids, train_size)
 
     print("loading selected training data")
     selected_embeddings = load_samples(
@@ -128,10 +135,6 @@ def main(
     )
 
     train_x, train_y = create_dataset(selected_embeddings)
-
-    # svm = sklearn.svm.SVC(random_state=random_seed, decision_function_shape="ovr").fit(
-    #     train_x, train_y
-    # )
 
     clf = sklearn.ensemble.VotingClassifier(
         estimators=[

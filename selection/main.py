@@ -15,6 +15,7 @@ from selection.selection import TrainingSetSelection
 
 def main(
     language: str,
+    train_size: int,
     allowed_training_set: os.PathLike = None,
     train_embeddings_dir: os.PathLike = None,
     audio_dir: Optional[os.PathLike] = None,
@@ -29,6 +30,9 @@ def main(
 
     :param language: language of the training set selection, either "en" (English),
       "id" (Indonesian), or "pt" (Portuguese)
+
+    :param train_size: number of training samples to select, see 
+      dataperf_speech_config.yaml for allowed options
 
     :param allowed_training_set: path to a yaml file containing the allowed clip
       IDs for training set selection, organized as a dictionary of potential target
@@ -64,9 +68,6 @@ def main(
         f"{outdir} does not exist, please specify --outdir as a command line argument"
     )
 
-    # TODO(mmaz) need an override mechanism, see https://github.com/harvard-edge/dataperf-speech-example/issues/3
-    config = yaml.safe_load(Path(config_file).read_text())
-
     # dict {"targets": {"dog":[list]}, "nontargets": [list]}
     allowed_training_ids = yaml.safe_load(Path(allowed_training_set).read_text())
 
@@ -80,6 +81,7 @@ def main(
     if audio_dir is not None:
         audio_flag = True
 
+    config = yaml.safe_load(Path(config_file).read_text())
     module = importlib.import_module(config["selection_algorithm_module"])
     class_ = getattr(module, config["selection_algorithm_class"])
     assert issubclass(
@@ -90,6 +92,7 @@ def main(
 
     selection = class_(
         allowed_embeddings=allowed_training_embeddings,
+        train_size=train_size,
         config=config,
         audio_flag=audio_flag,
     )
@@ -99,11 +102,12 @@ def main(
     n_selected = sum([len(sample_ids) for sample_ids in train.targets.values()]) + len(
         train.nontargets
     )
-    assert (
-        n_selected <= config["train_set_size_limit"]
-    ), f"{n_selected} samples selected, but the limit is {config['train_set_size_limit']}"
 
-    output = Path(outdir) / f"{language}_train.json"
+    assert (
+        n_selected <= train_size
+    ), f"selected {n_selected} samples, expected {train_size}"
+
+    output = Path(outdir) / f"{language}_{train_size}_train.json"
     output.write_text(
         json.dumps(
             dict(targets=train.targets, nontargets=train.nontargets),
