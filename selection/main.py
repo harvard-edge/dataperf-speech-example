@@ -105,7 +105,7 @@ def main(
 
     assert (
         n_selected <= train_size
-    ), f"selected {n_selected} samples, expected {train_size}"
+    ), f"proposed {n_selected} samples which exceeds the limit of {train_size=}"
 
     output = Path(outdir) / f"{language}_{train_size}_train.json"
     output.write_text(
