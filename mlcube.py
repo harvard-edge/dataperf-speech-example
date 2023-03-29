@@ -29,6 +29,7 @@ class SelectTask:
 
         cmd = "python3 -m selection.main"
         cmd += f" --language en"
+        cmd += f" --train_size 60"
         cmd += f" --config_file {config_file}"
         cmd += f" --allowed_training_set {allowed_training_set}"
         cmd += f" --train_embeddings_dir {train_embeddings_dir}"
@@ -48,6 +49,7 @@ class EvaluateTask:
         env = os.environ.copy()
         env.update({
             'language': 'en',
+            'train_size': '60',
             'eval_embeddings_dir': eval_embeddings_dir,
             'train_embeddings_dir': train_embeddings_dir,
             'allowed_training_set': allowed_training_set,
