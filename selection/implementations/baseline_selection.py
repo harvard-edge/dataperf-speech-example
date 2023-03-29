@@ -7,6 +7,7 @@ import sklearn.ensemble
 import sklearn.svm
 import sklearn.linear_model
 import tqdm
+import sys
 
 # include additional dependencies as needed:
 from sklearn.metrics import balanced_accuracy_score
@@ -34,10 +35,16 @@ class BaselineSelection(TrainingSetSelection):
         target_to_classid["nontarget"] = 0
 
         # what fraction of total samples should be targets (vs nontargets)
-        target_frac = 0.6 
+        target_frac = self.config["target_frac"]
         num_targets = int(self.train_set_size * target_frac)
+        if num_targets < 5:
+            # this is unsatisfiable, early exit 
+            sys.exit()
         per_target_class_size = num_targets // (len(target_to_classid.keys()) - 1)
         nontarget_class_size = int(self.train_set_size * (1 - target_frac))
+        if nontarget_class_size == 0:
+            # this is unsatisfiable, early exit
+            sys.exit()
         print(f"num_targets: {num_targets}")
         print(f"per_target_class_size: {per_target_class_size}")
         print(f"nontarget_class_size: {nontarget_class_size}")
@@ -81,7 +88,7 @@ class BaselineSelection(TrainingSetSelection):
         best_target_train_ixs = None
         best_nontarget_train_ixs = None
 
-        n_folds = 10
+        n_folds = self.config["xfold"]
 
         # stratified shuffle split will reflect the percentage of each target
         # in the allowed set - i.e., if the allowed targets have 5000 samples of

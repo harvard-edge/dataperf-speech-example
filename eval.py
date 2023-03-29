@@ -87,6 +87,7 @@ def main(
     eval_file=None,
     train_file=None,
     config_file="workspace/dataperf_speech_config.yaml",
+    train_set_size_limit=None,
 ):
 
     if language not in ['en', 'id', 'pt']:
@@ -108,7 +109,10 @@ def main(
         train_file = f"workspace/{language}_train.json"
 
     config = yaml.safe_load(Path(config_file).read_text())
-    train_set_size_limit = config["train_set_size_limit"]
+    if train_set_size_limit is None:
+        train_set_size_limit = config["train_set_size_limit"]
+    else:
+        print(f"overriding train_set_size_limit from {config['train_set_size_limit']} to {train_set_size_limit}")
     random_seed = config["random_seed"]
 
     allowed_training_ids = yaml.safe_load(Path(allowed_training_set).read_text())

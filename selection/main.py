@@ -15,11 +15,14 @@ from selection.selection import TrainingSetSelection
 
 def main(
     language: str,
+    target_frac: float,
+    xfold: int,
     allowed_training_set: os.PathLike = None,
     train_embeddings_dir: os.PathLike = None,
     audio_dir: Optional[os.PathLike] = None,
     config_file: os.PathLike = "workspace/dataperf_speech_config.yaml",
     outdir: os.PathLike = "workspace",
+    train_set_size_limit: Optional[int] = None,
 ):
     """
     Entrypoint for the training set selection algorithm. Challenge participants
@@ -48,6 +51,9 @@ def main(
 
     :param outdir: output directory to save the selected training set as a yaml file
 
+    :param train_set_size_limit: maximum number of training samples to select, overriding
+        the value in the config file only if specified (default: None)
+
     """
     if language not in ['en', 'id', 'pt']:
         raise ValueError(f"language {language} not supported. Supported languages are: en, id, pt")
@@ -66,6 +72,12 @@ def main(
 
     # TODO(mmaz) need an override mechanism, see https://github.com/harvard-edge/dataperf-speech-example/issues/3
     config = yaml.safe_load(Path(config_file).read_text())
+
+    if train_set_size_limit is not None:
+        print(f"overriding train_set_size_limit from {config_file}:{config['train_set_size_limit']} to {train_set_size_limit}")
+    config["train_set_size_limit"] = train_set_size_limit
+    config["target_frac"] = target_frac
+    config["xfold"] = xfold
 
     # dict {"targets": {"dog":[list]}, "nontargets": [list]}
     allowed_training_ids = yaml.safe_load(Path(allowed_training_set).read_text())
