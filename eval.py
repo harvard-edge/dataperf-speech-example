@@ -12,8 +12,6 @@ import json
 
 from selection.load_samples import load_samples
 
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import balanced_accuracy_score
 from sklearn.metrics import f1_score
 
 
@@ -151,7 +149,7 @@ def main(
 
     pred_y = clf.predict(eval_x)
 
-    print("Score: ", balanced_accuracy_score(eval_y, pred_y))
+    print("Score: ", f1_score(eval_y, pred_y, average="macro"))
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ import sklearn.linear_model
 import tqdm
 
 # include additional dependencies as needed:
-from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import f1_score
 
 from selection.selection import TrainingSetSelection, TrainingSet
 
@@ -142,7 +142,7 @@ class BaselineSelection(TrainingSetSelection):
 
                 pred_Ys = clf.predict(val_Xs)
 
-                score = balanced_accuracy_score(val_ys, pred_Ys)
+                score = f1_score(val_ys, pred_Ys, average="macro")
                 if score > best_score:
                     best_score = score
                     best_target_train_ixs = target_train_ixs

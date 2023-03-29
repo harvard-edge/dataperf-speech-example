@@ -1,7 +1,7 @@
 # Dataperf-Selection-Speech Alpha
 Dataperf-Selection-Speech is a benchmark that measures the performance of dataset selection algorithms. The model training component is frozen and participants can only improve the accuracy by selecting the best training set. The benchmark is intended to encompass the tasks of dataset cleaning and coreset selection for a keyword spotting application.
 
-More specifically, you are given a classification training dataset and your goal is to produce an algorithm that selects a subset of *M* examples from this dataset\*. Evaluation proceeds by subsequently training a fixed model (`sklearn.ensemble.VotingClassifier` with various constituent classifiers) on your chosen subset, and then scoring the model's predictions on fixed test data via the `sklearn.metrics.balanced_accuracy_score` metric.
+More specifically, you are given a classification training dataset and your goal is to produce an algorithm that selects a subset of *M* examples from this dataset\*. Evaluation proceeds by subsequently training a fixed model (`sklearn.ensemble.VotingClassifier` with various constituent classifiers) on your chosen subset, and then scoring the model's predictions on fixed test data via the `sklearn.metrics.f1_score` metric with `average = macro`.
 
 \* *M* is user defined, but Dynabench will host two leaderboards per language with training size caps of 25 and 60.
 
@@ -35,7 +35,7 @@ Evaluate your training set:
 python eval.py --language en --train_size 60
 ```
 
-This will output the balanced accuracy of a model trained on the selected training set. The offline evaluation score is unofficial, but useful for development. Note that the official evaluation will be performed on DynaBench.
+This will output the macro f1 score of a model trained on the selected training set. The offline evaluation score is unofficial, but useful for development. Note that the official evaluation will be performed on DynaBench.
 
 ### Algorithm Development
 To develop their own selection algorithm, participants should:
