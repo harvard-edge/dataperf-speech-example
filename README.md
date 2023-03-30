@@ -22,6 +22,16 @@ The training dataset consists of embedding vectors produced by a [pretrained key
 
 Solutions should be algorithmic in nature (i.e., they should not involve human-in-the-loop audio sample listening and selection). We warmly encourage open-source submissions. If a participant team does not wish to open-source their solution, we ask that they allow the DataPerf organization to independently verify their solution and approach to ensure it is within the challenge rules.
 
+# Challenge 
+
+The challenge is hosted on [dataperf.org](https://dataperf.org) and will run from March 30 2023 through May 26 2023. Participants can submit solutions to [DynaBench](https://dynabench.org/tasks/speech-selection).
+
+## Changelog
+
+In case bugs or concerns are found, we will include a description of any changes to the evaluation metric, datasets, or support code here. Participants can re-submit their solutions to a new round on DynaBench which will reflect these changes.
+
+* March 30 2023: Challenge launch
+
 ## Downloading The Required Files
 
 ```
