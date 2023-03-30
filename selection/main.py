@@ -31,8 +31,7 @@ def main(
     :param language: language of the training set selection, either "en" (English),
       "id" (Indonesian), or "pt" (Portuguese)
 
-    :param train_size: number of training samples to select, see 
-      dataperf_speech_config.yaml for allowed options
+    :param train_size: maximum number of training samples to select
 
     :param allowed_training_set: path to a yaml file containing the allowed clip
       IDs for training set selection, organized as a dictionary of potential target

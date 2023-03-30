@@ -1,48 +1,78 @@
-# Dataperf-Selection-Speech Alpha
+# Dataperf-Selection-Speech
 Dataperf-Selection-Speech is a benchmark that measures the performance of dataset selection algorithms. The model training component is frozen and participants can only improve the accuracy by selecting the best training set. The benchmark is intended to encompass the tasks of dataset cleaning and coreset selection for a keyword spotting application.
 
-More specifically, you are given a classification training dataset and your goal is to produce an algorithm that selects a subset of *M* examples from this dataset\*. Evaluation proceeds by subsequently training a fixed model (`sklearn.ensemble.VotingClassifier` with various constituent classifiers) on your chosen subset, and then scoring the model's predictions on fixed test data via the `sklearn.metrics.f1_score` metric with `average = macro`.
-
-\* *M* is user defined, but Dynabench will host two leaderboards per language with training size caps of 25 and 60.
 
 Component Ownership Diagram:
 
 ![Simple workflow](https://docs.google.com/drawings/d/e/2PACX-1vSlVN0uRWKySxu2ghuRhori-YxnQG859kg7zxan9xKXwarb1lQkRw9qVlnsOGEDqeVImxIplBvPDe5O/pub?w=635&h=416)
 
+
+## Evaluation Metric
+
+You are given a training dataset for spoken word classification and your goal is to produce an algorithm that selects a subset of size *M* examples (a coreset) from this dataset\*. Evaluation proceeds by subsequently training a fixed model (`sklearn.ensemble.VotingClassifier` with various constituent classifiers) on your chosen subset, and then scoring the model's predictions on fixed test data via the `sklearn.metrics.f1_score` metric with `average = macro`.
+
+\* *M* is user defined, but Dynabench will host two leaderboards per language with coreset size caps of 25 and 60.
+
+For each language, the challenge includes two leaderboards on Dynabench (six leaderboards in total). Each leaderboard corresponds to a language and a fixed maximum number of training samples (your submission can specifiy fewer samples than the maximum coreset size).
+
+The training dataset consists of embedding vectors produced by a [pretrained keyword spotting model](https://arxiv.org/abs/2104.01454) ([model checkpoint weights](https://github.com/harvard-edge/multilingual_kws/releases/download/v0.1-alpha/multilingual_context_73_0.8011.tar.gz)) for five target words in each of three languages (English, Portuguese, and Indonesian) taken from the [Multilingual Spoken Words Corpus](https://mlcommons.org/words). The classifier also includes a `nontarget` category representing unknown words which are distinct from one of the five target words. To train and evaluate the classifier's ability to recognize nontarget words, we include a large set of embedding vectors drawn from each respective language. The total number of target and nontarget samples for each language is shown in the figure below:
+
+
+![Sample Counts](https://docs.google.com/drawings/d/e/2PACX-1vTu7bLLDu9QcUdzNzUOnHo53sCxsaiFs5aCsi__q32PiZdG2BTz0ovdfTSFutgKiWL39mnlMw-orBhk/pub?w=921&h=376)
+
+Solutions should be algorithmic in nature (i.e., they should not involve human-in-the-loop audio sample listening and selection). We warmly encourage open-source submissions. If a participant team does not wish to open-source their solution, we ask that they allow the DataPerf organization to independently verify their solution and approach to ensure it is within the challenge rules.
+
+# Challenge 
+
+The challenge is hosted on [dataperf.org](https://dataperf.org) and will run from March 30 2023 through May 26 2023. Participants can submit solutions to [DynaBench](https://dynabench.org/tasks/speech-selection).
+
+## Changelog
+
+In case bugs or concerns are found, we will include a description of any changes to the evaluation metric, datasets, or support code here. Participants can re-submit their solutions to a new round on DynaBench which will reflect these changes.
+
+* March 30 2023: Challenge launch
+
 ## Downloading The Required Files
 
 ```
-python utils/download_data.py --parameters_file workspace/parameters.yaml --output_path workspace/data
+python utils/download_data.py --output_path workspace/data
 ```
 
 This will automatically download and extract the train and eval embeddings for English, Inodnesian, and Portuguese.
 
 ## Running Selection/Eval
-Run and evaluate the baseline selection algorithm. The target language can be changed by modifying the `--language` argument (English: 'en', Indonesian: 'ed', Portuguese: 'pt'). The training set size can be changed by modifying the `--train_size` argument (default is 60).
+Run and evaluate the baseline selection algorithm. The target language can be changed by modifying the `--language` argument (English: `en`, Indonesian: `id`, Portuguese: `pt`). The training set size can be changed by modifying the `--train_size` argument (in particular, for each language, you will run two iterations of your training set selection algorithm, one for each `--train_size` leaderboard - in other words, you will perform six coreset generations in total per submission to Dynabench).
 
 
 Run selection:
 
 ```
-python -m selection.main --language en --train_size 60
+python -m selection.main --language en --train_size 25
 ```
 
-This will write out `en_train.json` into the directory specified by `--outdir` (default is the `workspace/` directory).
+This will write out `en_25_train.json` into the directory specified by `--outdir` (default is the `workspace/` directory), where `25` refers to the maximum size of the coreset.
 
-Evaluate your training set:
+You can run evaluation locally on your training set, but **please note the following:**
+
+## :exclamation:  Do not use evaluation data during your selection algorithm development and optimization
+
+Please see the challenge rules on [dataperf.org](https://dataperf.org) for more details - in particular, we ask you not to optimize your result using any of the challenge evaluation data. Optimization (e.g., cross-validation) should be performed on the samples in `allowed_training_set.yaml` for each language, and solutions **should not** be optimized against any of the samples listed in `eval.yaml` for any of the languages.
+
+Since this speech challenge is fully open, there is no hidden test set. A locally-computed evaluation score is unofficial, but should match the results on DynaBench, and included here solely to allow for double-checking of DynaBench-computed results only if necessary. Official evaluations will only be performed on DynaBench. The following command performs local (offline) evaluation:
 
 ```
-python eval.py --language en --train_size 60
+python eval.py --language en --train_size 25
 ```
 
-This will output the macro f1 score of a model trained on the selected training set. The offline evaluation score is unofficial, but useful for development. Note that the official evaluation will be performed on DynaBench.
+This will output the macro f1 score of a model trained on the selected training set, against the official evaluation samples. 
 
 ### Algorithm Development
 To develop their own selection algorithm, participants should:
-- Duplicate and rename `random_selection.py` in `selection/implementations`
-- Modify `Select ()` in your new implementation file to your selection algorithm
+- Create a new `selection.py` algorithm in `selection/implementations` which subclasses [`TrainingSetSelection`](https://github.com/harvard-edge/dataperf-speech-example/blob/main/selection/selection.py#L16)
+- Implement `select()` in your class to use your selection algorithm
 - Change `selection_algorithm_module` and `selection_algorithm_class` in `workspace/dataperf_speech_config.yaml` to match the name of your selection implementation
-- Run and evaluate your selection algorithm with the MLCube commands above
+- optionally, add experiment configs to `workspace/dataperf_speech_config.yaml` (this can be accessed via `self.config` in )
+- Run your selection strategy and submit your results to DynaBench
 
 ### Submission
 Once participants are satisfied with their selection algorithm they should submit their `{lang}_{size}_train.json` files to [DynaBench](https://dynabench.org/tasks/speech-selection).
@@ -57,12 +87,12 @@ Each supported language has the following files:
 
 * `allowed_train_set.yaml` : A file that specifies which sample IDs are valid training samples. The file contrains the following structure `{"targets": {"left":[list]}, "nontargets": [list]}`
 
-* `eval.yaml` : The evaluation set for eval.py. It follows the same structure as `allowed_train_set.yaml`.
+* `eval.yaml` : The evaluation set for eval.py. It follows the same structure as `allowed_train_set.yaml`. Participants should never use this data for training set selection algorithm development.
 
 * `{lang}_{size}_train.json` : The file produced by `selection:main` that specifies the language specific training set for eval.py.
 
 All languages share the following files:
-* `dataperf_speech_config.yaml` : This file contains the configuration for the dataperf-speech-example workflow.
+* `dataperf_speech_config.yaml` : This file contains the configuration for the dataperf-speech-example workflow. Participants can extend this configuration file as needed.
 
 #### Optional Files
 
