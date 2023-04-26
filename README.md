@@ -30,6 +30,7 @@ The challenge is hosted on [dataperf.org](https://dataperf.org) and will run fro
 
 In case bugs or concerns are found, we will include a description of any changes to the evaluation metric, datasets, or support code here. Participants can re-submit their solutions to a new round on DynaBench which will reflect these changes.
 
+* April 26 2023: Evaluation dataset publicly released
 * March 30 2023: Challenge launch
 
 ## Downloading The Required Files
