@@ -1,6 +1,7 @@
 # Dataperf-Selection-Speech
 Dataperf-Selection-Speech is a benchmark that measures the performance of dataset selection algorithms. The model training component is frozen and participants can only improve the accuracy by selecting the best training set. The benchmark is intended to encompass the tasks of dataset cleaning and coreset selection for a keyword spotting application.
 
+**Getting Started:** Jump to [our introductory colab below](#getting-started)!
 
 Component Ownership Diagram:
 
@@ -25,6 +26,13 @@ Solutions should be algorithmic in nature (i.e., they should not involve human-i
 # Challenge 
 
 The challenge is hosted on [dataperf.org](https://dataperf.org) and will run from March 30 2023 through May 26 2023. Participants can submit solutions to [DynaBench](https://dynabench.org/tasks/speech-selection).
+
+## Getting Started 
+
+<a href="https://colab.research.google.com/github/harvard-edge/dataperf-speech-example/blob/main/dataperf_speech_colab.ipynb"><img src="https://www.tensorflow.org/images/colab_logo_32px.png" alt="https://colab.research.google.com/github/harvard-edge/dataperf-speech-example/blob/main/dataperf_speech_colab.ipynb"></a>
+Launch [our introductory notebook on Google Colab](https://colab.research.google.com/github/harvard-edge/dataperf-speech-example/blob/main/dataperf_speech_colab.ipynb) which walks through performing coreset selection with our [baseline algorithm](https://github.com/harvard-edge/dataperf-speech-example/blob/main/selection/implementations/baseline_selection.py) and running [our evaluation script](https://github.com/harvard-edge/dataperf-speech-example/blob/main/eval.py) on the coresets for English, Portuguese, and Indonesian.
+
+Below, we provide additional documentation for each step of the above colab (downloading, training coreset selection, and evaluation).
 
 ## Changelog
 
