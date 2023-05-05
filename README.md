@@ -1,5 +1,6 @@
 # Dataperf-Selection-Speech
-Dataperf-Selection-Speech is a benchmark that measures the performance of dataset selection algorithms. The model training component is frozen and participants can only improve the accuracy by selecting the best training set. The benchmark is intended to encompass the tasks of dataset cleaning and coreset selection for a keyword spotting application.
+
+[Dataperf-Selection-Speech](https://www.dataperf.org/training-set-selection-speech) is a challenge hosted by [DataPerf.org](https://dataperf.org) that measures the performance of dataset selection algorithms. The model training component is frozen and participants can only improve the accuracy by selecting the best training set. The benchmark is intended to encompass the tasks of dataset cleaning and coreset selection for a keyword spotting application. As a participant, you will submit your proposed list of training samples to the leaderboard on [DynaBench](https://dynabench.org/tasks/speech-selection) where the model is trained, evaluated, and scored.
 
 **Getting Started:** Jump to [our introductory colab below](#getting-started)!
 
