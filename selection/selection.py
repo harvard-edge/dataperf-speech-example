@@ -37,7 +37,7 @@ class TrainingSetSelection:
         self.config = config
         # the maximum number of samples allowed for the coreset selection algorithm to return
         self.train_set_size = train_size
-        self.random_seed = config["random_seed"]
+        self.random_seed = config["selection_random_seed"]
         self.audio_flag = audio_flag
 
     def select(self):
