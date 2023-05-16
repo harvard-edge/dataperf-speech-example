@@ -114,7 +114,7 @@ def main(
         train_file = f"workspace/{language}_{train_size}_train.json"
 
     config = yaml.safe_load(Path(config_file).read_text())
-    random_seed = config["random_seed"]
+    eval_random_seeds = config["eval_random_seeds"]
 
     allowed_training_ids = yaml.safe_load(Path(allowed_training_set).read_text())
     selected_ids = json.loads(Path(train_file).read_text())
@@ -134,22 +134,27 @@ def main(
 
     train_x, train_y = create_dataset(selected_embeddings)
 
-    clf = sklearn.ensemble.VotingClassifier(
-        estimators=[
-            ("svm", sklearn.svm.SVC(probability=True, random_state=random_seed)),
-            ("lr", sklearn.linear_model.LogisticRegression(random_state=random_seed)),
-        ],
-        voting="soft",
-        weights=None,
-    )
-    clf.fit(train_x, train_y)
+    #average the scores over multiple random seeds
+    scores = []
+    for random_seed in eval_random_seeds:
+        clf = sklearn.ensemble.VotingClassifier(
+            estimators=[
+                ("svm", sklearn.svm.SVC(probability=True, random_state=random_seed)),
+                ("lr", sklearn.linear_model.LogisticRegression(random_state=random_seed)),
+            ],
+            voting="soft",
+            weights=None,
+        )
+        clf.fit(train_x, train_y)
 
-    # eval
-    eval_x, eval_y = create_dataset(eval_embeddings)
+        # eval
+        eval_x, eval_y = create_dataset(eval_embeddings)
 
-    pred_y = clf.predict(eval_x)
+        pred_y = clf.predict(eval_x)
+        scores.append(f1_score(eval_y, pred_y, average="macro"))
 
-    print("Score: ", f1_score(eval_y, pred_y, average="macro"))
+    average_score = np.mean(scores)
+    print("Score: ", average_score)
 
 
 if __name__ == "__main__":

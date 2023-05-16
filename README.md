@@ -11,7 +11,7 @@ Component Ownership Diagram:
 
 ## Evaluation Metric
 
-You are given a training dataset for spoken word classification and your goal is to produce an algorithm that selects a subset of size *M* examples (a coreset) from this dataset\*. Evaluation proceeds by subsequently training a fixed model (`sklearn.ensemble.VotingClassifier` with various constituent classifiers) on your chosen subset, and then scoring the model's predictions on fixed test data via the `sklearn.metrics.f1_score` metric with `average = macro`.
+You are given a training dataset for spoken word classification and your goal is to produce an algorithm that selects a subset of size *M* examples (a coreset) from this dataset\*. Evaluation proceeds by subsequently training a fixed model (`sklearn.ensemble.VotingClassifier` with various constituent classifiers) on your chosen subset, and then scoring the model's predictions on fixed test data via the `sklearn.metrics.f1_score` metric with `average = macro`. We average the score over 10 random seeds (located in workspace/dataperf_speech_config.yaml) to produce the final score.
 
 \* *M* is user defined, but Dynabench will host two leaderboards per language with coreset size caps of 25 and 60.
 
@@ -39,6 +39,7 @@ Below, we provide additional documentation for each step of the above colab (dow
 
 In case bugs or concerns are found, we will include a description of any changes to the evaluation metric, datasets, or support code here. Participants can re-submit their solutions to a new round on DynaBench which will reflect these changes.
 
+* May 16 2023: Added averaging across multiple seeds during evaluation
 * April 26 2023: Evaluation dataset publicly released
 * March 30 2023: Challenge launch
 

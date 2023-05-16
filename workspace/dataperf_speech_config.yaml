@@ -1,3 +1,4 @@
-random_seed: 0
+selection_random_seed: 0
+eval_random_seeds: [5, 69, 98, 70, 95, 64, 37, 11, 4, 32]
 selection_algorithm_module: "selection.implementations.baseline_selection"
 selection_algorithm_class: "BaselineSelection"
