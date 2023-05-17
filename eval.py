@@ -133,6 +133,7 @@ def main(
     )
 
     train_x, train_y = create_dataset(selected_embeddings)
+    eval_x, eval_y = create_dataset(eval_embeddings)
 
     #average the scores over multiple random seeds
     scores = []
@@ -148,8 +149,6 @@ def main(
         clf.fit(train_x, train_y)
 
         # eval
-        eval_x, eval_y = create_dataset(eval_embeddings)
-
         pred_y = clf.predict(eval_x)
         scores.append(f1_score(eval_y, pred_y, average="macro"))
 
