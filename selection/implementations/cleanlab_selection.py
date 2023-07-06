@@ -28,6 +28,8 @@ class CleanlabSelection(TrainingSetSelection):
         # Hyperparameters of this approach:
         NUM_FOLDS = 10  # can significantly speed up code by decreasing this to 2
         EXTRA_FRAC = 0.5  # what fraction of datapoints to delete with lowest cleanlab label quality scores (beyond default cleanlab filter)
+        TARGET_FRAC = 0.5 # what fraction of total samples should be targets (vs nontargets)
+
 
         SUBSET_SIZE = self.train_set_size
         SEED = self.random_seed
@@ -35,7 +37,7 @@ class CleanlabSelection(TrainingSetSelection):
         clf = sklearn.ensemble.VotingClassifier(
                     estimators=[
                         ("svm", sklearn.svm.SVC(probability=True)),
-                        ("lr", sklearn.linear_model.LogisticRegression()),
+                        # ("lr", sklearn.linear_model.LogisticRegression()),
                     ],
                     voting="soft",
                     weights=None,
@@ -51,7 +53,15 @@ class CleanlabSelection(TrainingSetSelection):
         target_to_classid["nontarget"] = 0
 
         num_classes = len(self.embeddings['targets'].keys()) + 1 #num targets + one non-target class
-        per_class_size = self.train_set_size // num_classes
+
+
+        num_targets = int(self.train_set_size * TARGET_FRAC)
+        per_target_class_size = num_targets // (len(target_to_classid.keys()) - 1)
+        nontarget_class_size = int(self.train_set_size * (1 - TARGET_FRAC))
+        print(f"num_targets: {num_targets}")
+        print(f"per_target_class_size: {per_target_class_size}")
+        print(f"nontarget_class_size: {nontarget_class_size}")
+        
 
         target_samples = np.array(
             [
@@ -114,12 +124,14 @@ class CleanlabSelection(TrainingSetSelection):
         og_ys = ys
         ys = ys[inds_to_keep]
         Xs = Xs[inds_to_keep]
-        # print("Class distribution: ")
-        # unique, counts = np.unique(ys, return_counts=True)
-        # print(np.asarray((unique, counts)).T)
-        # print("Finding coresets among remaining clean data ...")
+        print("Class distribution: ")
+        unique, counts = np.unique(ys, return_counts=True)
+        print(np.asarray((unique, counts)).T)
+        print("Finding coresets among remaining clean data ...")
         best_indices = np.array([], dtype=int)
         for y in np.unique(ys):
+            print(f"Finding coreset for class {y} ...")
+            per_class_size = per_target_class_size if y > 0 else nontarget_class_size
             y_inds_to_keep = np.where(ys == y)[0]
             Xs_y = Xs[y_inds_to_keep]
             # can try Kmeans instead also:
@@ -130,11 +142,11 @@ class CleanlabSelection(TrainingSetSelection):
             coreset_y_inds = clstr.medoid_indices_
             best_indices = np.concatenate((best_indices, inds_to_keep[y_inds_to_keep[coreset_y_inds]]))
         
-        # print("Class distribution post-selection: ")
-        # print(best_indices)
-        # unique, counts = np.unique(og_ys[best_indices], return_counts=True)
-        # print(np.asarray((unique, counts)).T)
-        # print(len(best_indices))
+        print("Class distribution post-selection: ")
+        print(best_indices)
+        unique, counts = np.unique(og_ys[best_indices], return_counts=True)
+        print(np.asarray((unique, counts)).T)
+        print(len(best_indices))
 
         # Extract indices:
         best_target_train_ixs = [x for x in best_indices if x < len(target_samples)]
